@@ -169,33 +169,31 @@ export default function Home() {
 
       {/* Jackpot Section */}
       <section className="py-12 bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 border-y border-gray-100/80 overflow-hidden">
-        <div className="container mx-auto px-4 max-w-4xl">
-          <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
-            
-            {/* Desktop-only Universe Signal Promo Text */}
-            <div className="hidden md:flex flex-col items-start space-y-4 max-w-sm text-left animate-in fade-in slide-in-from-left-6 duration-700">
-              <span className="inline-block px-3 py-1 rounded-full bg-yellow-400/20 text-yellow-700 text-[10px] font-black uppercase tracking-wider animate-pulse">
-                ✨ Tín hiệu vũ trụ
-              </span>
-              <h2 className="text-3xl lg:text-4xl font-black text-gray-950 tracking-tight leading-tight uppercase">
-                Không biết <br />
-                <span className="bg-gradient-to-r from-green-600 via-emerald-500 to-teal-600 bg-clip-text text-transparent italic font-medium">chọn gì?</span>
-              </h2>
-              <p className="text-xs lg:text-sm font-bold text-gray-500 leading-relaxed">
-                Đừng phân vân nữa! Hãy để <span className="text-yellow-600 font-extrabold">tín hiệu vũ trụ</span> lo cho bạn hôm nay. Chỉ cần một cú gạt cần, combo ngon đỉnh sẽ xuất hiện ngay lập tức! 🎰🚀
-              </p>
-              <div className="flex items-center space-x-2 text-[10px] font-black text-green-600 uppercase tracking-widest">
-                <span>Quay ngay thôi nào</span>
-                <span className="animate-bounce text-base">👉</span>
-              </div>
+        <div className="container mx-auto px-4 max-w-5xl relative min-h-[360px] flex items-center justify-center">
+          
+          {/* Desktop-only Universe Signal Promo Text - Positioned absolutely to the left, wheel remains centered */}
+          <div className="hidden md:flex absolute right-[55%] lg:right-[56%] xl:right-[58%] top-1/2 -translate-y-1/2 flex-col items-start space-y-3 max-w-[280px] lg:max-w-[320px] text-left animate-in fade-in slide-in-from-left-6 duration-700">
+            <span className="inline-block px-3 py-1 rounded-full bg-yellow-400/20 text-yellow-700 text-[10px] font-black uppercase tracking-wider animate-pulse">
+              ✨ Tín hiệu vũ trụ
+            </span>
+            <h2 className="text-2xl lg:text-3xl font-black text-gray-950 tracking-tight leading-tight uppercase">
+              Không biết <br />
+              <span className="bg-gradient-to-r from-green-600 via-emerald-500 to-teal-600 bg-clip-text text-transparent italic font-medium">chọn gì?</span>
+            </h2>
+            <p className="text-xs font-bold text-gray-400 leading-relaxed">
+              Đừng suy nghĩ nhiều! Hãy để <span className="text-yellow-600 font-extrabold">tín hiệu vũ trụ</span> gạt cần chọn ngay combo trái cây tươi ngon đỉnh chóp cho bạn. 🎰🚀
+            </p>
+            <div className="flex items-center space-x-1.5 text-[9px] font-black text-green-600 uppercase tracking-widest">
+              <span>Gạt cần ngay thôi</span>
+              <span className="animate-bounce text-sm">👉</span>
             </div>
-
-            {/* Jackpot Slot Machine Card */}
-            <div className="w-full max-w-sm flex-shrink-0">
-              <JackpotCard outOfStockSlugs={outOfStockFruitSlugs} />
-            </div>
-
           </div>
+
+          {/* Jackpot Slot Machine Card - Centered in middle */}
+          <div className="w-full max-w-sm flex-shrink-0 z-10">
+            <JackpotCard outOfStockSlugs={outOfStockFruitSlugs} />
+          </div>
+
         </div>
       </section>
 
