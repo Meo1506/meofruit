@@ -45,7 +45,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   ownerName: "Nam Nguyễn",
   bankAccount: {
     number: "9916297232",
-    owner: "PHẠM NGUYỄN HỮU NAM",
+    owner: "PHẠM NGUYỄN HUY NAM",
     bank: "Techcombank"
   },
   contact: {
