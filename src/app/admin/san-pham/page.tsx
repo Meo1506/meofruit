@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Plus, Search, Edit2, Trash2, Loader2, X, Save, Image as ImageIcon, MinusCircle, Check, Upload, AlertTriangle } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Product } from "@/types";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured, getErrorMessage } from "@/lib/supabase";
 import { uploadProductImage, validateImageFile } from "@/lib/uploadImage";
 import { slugify } from "@/lib/slugify";
 import productsData from "@/data/products.json";
@@ -28,8 +28,8 @@ export default function AdminProducts() {
     if (!confirm(`Đồng bộ ${productsData.length} sản phẩm từ file lên Supabase?\n(Sẽ cập nhật nếu slug đã tồn tại, không xóa sản phẩm cũ.)`)) return;
     setIsSyncing(true);
     try {
+      // Bỏ id (để DB tự sinh UUID); upsert theo slug
       const rows = productsData.map((p) => ({
-        id: p.id,
         slug: p.slug,
         name: p.name,
         price: p.price,
@@ -39,14 +39,18 @@ export default function AdminProducts() {
         description: p.description ?? null,
         is_in_stock: p.is_in_stock ?? true,
         product_type: p.product_type ?? "standard",
-        fruits: (p as any).fruits ?? [],
+        fruits: (p as { fruits?: string[] }).fruits ?? [],
       }));
       const { error } = await supabase.from("products").upsert(rows, { onConflict: "slug" });
-      if (error) throw error;
+      if (error) {
+        console.error("Seed error full:", error);
+        throw error;
+      }
       alert(`Đã đồng bộ ${rows.length} sản phẩm thành công!`);
       fetchProducts();
     } catch (err: unknown) {
-      alert("Lỗi: " + (err instanceof Error ? err.message : String(err)));
+      console.error("Seed failed:", err);
+      alert("Lỗi: " + getErrorMessage(err));
     } finally {
       setIsSyncing(false);
     }
