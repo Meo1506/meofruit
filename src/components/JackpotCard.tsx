@@ -283,8 +283,10 @@ export default function JackpotCard({ outOfStockSlugs = [], onPhaseChange }: Jac
       {/* Physical Lever/Handle on the right side - Vertical pull-down action! */}
       {activeFruits.length >= 2 && (
         <div className="absolute -right-5 top-[22%] w-10 h-32 z-30 select-none hidden sm:block">
-          {/* Base socket sticking to the card - centered to match rod */}
-          <div className="absolute left-1/2 -translate-x-1/2 bottom-2 w-5 h-5 bg-gradient-to-r from-gray-800 to-gray-700 rounded shadow-md border border-gray-600/30 z-20 shadow-md shadow-black/50" />
+          {/* Base socket - in FRONT of the rod so rod appears plugged in */}
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-1 w-6 h-7 bg-gradient-to-b from-gray-700 via-gray-800 to-gray-900 rounded-md border border-gray-600/40 z-40 shadow-lg shadow-black/60 pointer-events-none" />
+          {/* Inner lip highlight to enhance the "plug" depth */}
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-[26px] w-3.5 h-1 bg-black/70 rounded-full z-40 pointer-events-none" />
           
           {/* Lever Arm & Red Knob Container - centered above socket */}
           <div
