@@ -279,14 +279,14 @@ export default function JackpotCard({ outOfStockSlugs = [], onPhaseChange }: Jac
           {/* Base socket sticking to the card */}
           <div className="absolute left-2.5 bottom-0 w-4 h-6 bg-gradient-to-r from-gray-800 to-gray-700 rounded shadow-md border border-gray-600/30 z-20" />
           
-          {/* Lever Arm & Red Knob Container */}
+          {/* Lever Arm & Red Knob Container - Expanded to w-8 for easy clicking */}
           <div 
             onClick={phase === "idle" ? spin : undefined}
-            className="absolute left-4 bottom-4 w-1 h-16 origin-bottom cursor-pointer z-30"
+            className="absolute left-0 bottom-4 w-8 h-20 origin-bottom cursor-pointer z-30"
           >
             {/* Metal Rod - Scales down vertically when pulled */}
             <div 
-              className="w-1.5 bg-gradient-to-r from-gray-400 via-gray-200 to-gray-500 rounded-t-full origin-bottom shadow-inner"
+              className="absolute left-1/2 -translate-x-1/2 w-1.5 bg-gradient-to-r from-gray-400 via-gray-200 to-gray-500 rounded-t-full origin-bottom shadow-inner"
               style={{
                 height: "60px",
                 transform: leverActive ? "scaleY(0.15) translateY(12px)" : "scaleY(1)",
@@ -359,7 +359,7 @@ export default function JackpotCard({ outOfStockSlugs = [], onPhaseChange }: Jac
                 <img src={mapped.product.image_url} alt={mapped.product.name} className="w-full h-full object-cover" />
               </div>
 
-              <p className="text-base font-black text-white leading-tight">{mapped.product.name}</p>
+              <p className="text-sm sm:text-base font-black text-white leading-tight break-words px-2 max-w-full">{mapped.product.name}</p>
 
               {mapped.customFruits && (
                 <p className="text-[10px] text-gray-400 font-medium">{mapped.customFruits.join(" · ")}</p>

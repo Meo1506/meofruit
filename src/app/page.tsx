@@ -172,7 +172,7 @@ export default function Home() {
       <section className="py-12 bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 border-y border-gray-100/80 overflow-hidden">
         <div className="container mx-auto px-4 max-w-5xl">
           {/* Centered relative wrapper for Jackpot wheel */}
-          <div className="relative w-full max-w-sm mx-auto min-h-[380px] flex items-center justify-center">
+          <div className="relative w-full max-w-md mx-auto min-h-[380px] flex items-center justify-center">
             
             {/* Desktop-only Universe Signal Promo Text - Positioned exactly to the left of the card boundary */}
             <div className="hidden lg:flex absolute right-[calc(100%+48px)] top-1/2 -translate-y-1/2 flex-col items-start space-y-4 w-[280px] lg:w-[320px] text-left animate-in fade-in slide-in-from-left-6 duration-700">
