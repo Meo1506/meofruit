@@ -6,7 +6,6 @@ import {
   LayoutDashboard,
   ShoppingBag,
   ShoppingCart,
-  Tags,
   Settings,
   LogOut,
   ChevronRight,
@@ -15,6 +14,7 @@ import {
   ShieldCheck,
   AlertTriangle,
   Mail,
+  Apple,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -77,11 +77,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!isAdmin) return null;
 
   const menuItems = [
-    { name: "Tổng quan", icon: LayoutDashboard, href: "/admin" },
-    { name: "Sản phẩm", icon: ShoppingBag, href: "/admin/san-pham" },
-    { name: "Đơn hàng", icon: ShoppingCart, href: "/admin/don-hang" },
-    { name: "Tin nhắn", icon: Mail, href: "/admin/tin-nhan" },
-    { name: "Cài đặt", icon: Settings, href: "/admin/cai-dat" },
+    { name: "Tổng quan",   icon: LayoutDashboard, href: "/admin" },
+    { name: "Sản phẩm",   icon: ShoppingBag,     href: "/admin/san-pham" },
+    { name: "Tồn kho quả", icon: Apple,           href: "/admin/trai-cay" },
+    { name: "Đơn hàng",   icon: ShoppingCart,    href: "/admin/don-hang" },
+    { name: "Tin nhắn",   icon: Mail,            href: "/admin/tin-nhan" },
+    { name: "Cài đặt",    icon: Settings,        href: "/admin/cai-dat" },
   ];
 
   return (

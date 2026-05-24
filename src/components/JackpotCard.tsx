@@ -144,12 +144,18 @@ function Reel({ onMount }: { onMount: (el: HTMLDivElement | null) => void }) {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 type Phase = "idle" | "spinning" | "result";
 
-export default function JackpotCard() {
+interface JackpotCardProps {
+  outOfStockSlugs?: string[];
+}
+
+export default function JackpotCard({ outOfStockSlugs = [] }: JackpotCardProps) {
   const { addToCart } = useCart();
   const [phase, setPhase]             = useState<Phase>("idle");
   const [result, setResult]           = useState<number[] | null>(null);
   const [added, setAdded]             = useState(false);
   const [leverActive, setLeverActive] = useState(false);
+
+  const activeFruits = FRUITS.filter(f => !outOfStockSlugs.includes(f.slug));
 
   const strips  = useRef<(HTMLDivElement | null)[]>(Array(5).fill(null));
   const ys      = useRef<number[]>([...INIT_YS]);
@@ -171,7 +177,10 @@ export default function JackpotCard() {
     setLeverActive(true);
     setTimeout(() => setLeverActive(false), 500);
 
-    const targets = Array(5).fill(0).map(() => Math.floor(Math.random() * 5));
+    const targets = Array(5).fill(0).map(() => {
+      const pick = activeFruits[Math.floor(Math.random() * activeFruits.length)];
+      return FRUITS.findIndex(f => f.slug === pick.slug);
+    });
     ys.current = [...INIT_YS];
 
     tickRef.current = setInterval(playTick, 90);
@@ -274,20 +283,27 @@ export default function JackpotCard() {
         </div>
 
         {/* Spin button */}
-        <button
-          onClick={spin}
-          disabled={phase !== "idle"}
-          className={`
-            w-full py-3 rounded-xl font-black uppercase tracking-widest text-xs
-            transition-all duration-150 select-none
-            ${phase === "idle"
-              ? "bg-gradient-to-b from-yellow-400 to-orange-500 text-gray-900 shadow-[0_4px_0_#92400e] active:shadow-[0_1px_0_#92400e] active:translate-y-[3px] hover:from-yellow-300"
-              : "bg-gray-700 text-gray-500 cursor-not-allowed"
-            }
-          `}
-        >
-          {phase === "spinning" ? "⏳ Đang quay..." : "🎰 Quay Chọn Món"}
-        </button>
+        {activeFruits.length < 2 ? (
+          <div className="w-full py-3 rounded-xl bg-gray-800 border border-gray-700 text-center">
+            <p className="text-[10px] font-black text-red-400 uppercase tracking-widest">Tạm ngừng</p>
+            <p className="text-[9px] text-gray-500 mt-0.5">Không đủ trái cây trong kho</p>
+          </div>
+        ) : (
+          <button
+            onClick={spin}
+            disabled={phase !== "idle"}
+            className={`
+              w-full py-3 rounded-xl font-black uppercase tracking-widest text-xs
+              transition-all duration-150 select-none
+              ${phase === "idle"
+                ? "bg-gradient-to-b from-yellow-400 to-orange-500 text-gray-900 shadow-[0_4px_0_#92400e] active:shadow-[0_1px_0_#92400e] active:translate-y-[3px] hover:from-yellow-300"
+                : "bg-gray-700 text-gray-500 cursor-not-allowed"
+              }
+            `}
+          >
+            {phase === "spinning" ? "⏳ Đang quay..." : "🎰 Quay Chọn Món"}
+          </button>
+        )}
 
         {/* Result overlay */}
         {phase === "result" && mapped && (

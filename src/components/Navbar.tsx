@@ -5,6 +5,7 @@ import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { useSiteSettings } from "@/context/SettingsContext";
 import { User, ShoppingBag, Search, Menu, X, LogIn, LogOut, Package } from "lucide-react";
+import NotificationBell from "@/components/NotificationBell";
 import { useRouter, usePathname } from "next/navigation";
 
 export default function Navbar() {
@@ -122,9 +123,11 @@ export default function Navbar() {
             <button onClick={() => setIsSearchOpen(true)} aria-label="Tìm kiếm" className={`p-2 rounded-full transition-colors hidden sm:block ${useOpaqueStyle ? "text-gray-700 hover:bg-gray-100" : "text-white hover:bg-white/10"}`}>
               <Search size={20} />
             </button>
-            
-            <Link 
-              href="/tai-khoan" 
+
+            <NotificationBell opaque={useOpaqueStyle} />
+
+            <Link
+              href="/tai-khoan"
               className={`p-2 rounded-full transition-colors ${useOpaqueStyle ? "text-gray-700 hover:bg-gray-100" : "text-white hover:bg-white/10"}`}
             >
               <User size={20} />

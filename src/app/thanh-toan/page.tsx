@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import CopyableText from "@/components/CopyableText";
 import OrderSuccessModal from "@/components/OrderSuccessModal";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { getOrCreateGuestToken } from "@/lib/guestToken";
 import { Loader2, AlertTriangle } from "lucide-react";
 
 export default function CheckoutPage() {
@@ -62,7 +63,8 @@ export default function CheckoutPage() {
         quantity: item.quantity,
         image_url: item.image_url
       })),
-      user_id: user?.id || null, // null = guest checkout
+      user_id: user?.id || null,
+      guest_token: user ? null : getOrCreateGuestToken(),
       status: 'new'
     };
 

@@ -41,6 +41,26 @@ export default function AdminOrders() {
     }
   }
 
+  async function insertNotification(order: any, status: string) {
+    const configs: Record<string, { title: string; message: string }> = {
+      confirmed: { title: "Đơn hàng đã xác nhận! 🎉", message: "Đơn hàng của bạn đã được shop xác nhận và đang chuẩn bị." },
+      shipping:  { title: "Đơn hàng đang giao! 🚚",   message: `Đơn hàng đang trên đường đến: ${order.customer_address}` },
+      delivered: { title: "Đã giao thành công! ✅",    message: "Đơn hàng đã được giao thành công. Cảm ơn bạn đã tin tưởng shop!" },
+      cancelled: { title: "Đơn hàng đã bị hủy ❌",    message: "Đơn hàng của bạn đã bị hủy. Liên hệ shop nếu cần hỗ trợ." },
+    };
+    const config = configs[status];
+    if (!config) return;
+    await supabase.from("notifications").insert([{
+      user_id: order.user_id || null,
+      guest_token: order.guest_token || null,
+      order_id: order.id,
+      type: status,
+      title: config.title,
+      message: config.message,
+      is_read: false,
+    }]);
+  }
+
   async function updateOrderStatus(orderId: string, newStatus: string) {
     try {
       if (isSupabaseConfigured()) {
@@ -50,6 +70,8 @@ export default function AdminOrders() {
           .eq('id', orderId);
         if (error) throw error;
         setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+        const order = orders.find(o => o.id === orderId);
+        if (order) await insertNotification(order, newStatus);
       } else {
         setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
         alert("Đã cập nhật (Chế độ Demo)");

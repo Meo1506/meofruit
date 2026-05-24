@@ -2,6 +2,7 @@
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
 import { SettingsProvider } from "@/context/SettingsContext";
+import { NotificationProvider } from "@/context/NotificationContext";
 import type { SiteSettings } from "@/types";
 
 export default function Providers({
@@ -14,7 +15,9 @@ export default function Providers({
   return (
     <SettingsProvider value={settings}>
       <AuthProvider>
-        <CartProvider>{children}</CartProvider>
+        <NotificationProvider>
+          <CartProvider>{children}</CartProvider>
+        </NotificationProvider>
       </AuthProvider>
     </SettingsProvider>
   );
