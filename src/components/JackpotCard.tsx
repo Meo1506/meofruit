@@ -275,14 +275,14 @@ export default function JackpotCard({ outOfStockSlugs = [], onPhaseChange }: Jac
     <div className="relative rounded-2xl overflow-visible w-full">
       {/* Physical Lever/Handle on the right side - Vertical pull-down action! */}
       {activeFruits.length >= 2 && (
-        <div className="absolute -right-4 top-[22%] w-8 h-32 z-30 select-none hidden sm:block">
-          {/* Base socket sticking to the card - Anchored at bottom-2 */}
-          <div className="absolute left-2.5 bottom-2 w-4 h-5 bg-gradient-to-r from-gray-800 to-gray-700 rounded shadow-md border border-gray-600/30 z-20 shadow-md shadow-black/50" />
+        <div className="absolute -right-5 top-[22%] w-10 h-32 z-30 select-none hidden sm:block">
+          {/* Base socket sticking to the card - centered to match rod */}
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-2 w-5 h-5 bg-gradient-to-r from-gray-800 to-gray-700 rounded shadow-md border border-gray-600/30 z-20 shadow-md shadow-black/50" />
           
-          {/* Lever Arm & Red Knob Container - Anchored at bottom-2, matching socket */}
-          <div 
+          {/* Lever Arm & Red Knob Container - centered above socket */}
+          <div
             onClick={phase === "idle" ? spin : undefined}
-            className="absolute left-0 bottom-2 w-8 h-28 cursor-pointer z-30"
+            className="absolute left-1/2 -translate-x-1/2 bottom-2 w-8 h-28 cursor-pointer z-30"
           >
             {/* Metal Rod - Scales down vertically from bottom-2 */}
             <div 
@@ -307,7 +307,7 @@ export default function JackpotCard({ outOfStockSlugs = [], onPhaseChange }: Jac
       )}
 
       {/* Card body */}
-      <div className="relative bg-gray-900 rounded-2xl p-4 flex flex-col gap-3 overflow-visible z-10 border border-gray-800 shadow-2xl shadow-black/50">
+      <div className="relative bg-gray-900 rounded-2xl p-5 sm:p-6 flex flex-col gap-4 overflow-visible z-10 border border-gray-800 shadow-2xl shadow-black/50">
 
         {/* Header row: title + frog */}
         <div className="flex items-center justify-between">
@@ -346,21 +346,21 @@ export default function JackpotCard({ outOfStockSlugs = [], onPhaseChange }: Jac
           </div>
         )}
 
-        {/* Result overlay - Positioned under the Header row to prevent covering the title */}
+        {/* Result overlay - covers entire card so title stays inside the frame */}
         {phase === "result" && mapped && (
-          <div className="absolute inset-x-0 bottom-0 top-[66px] rounded-b-2xl bg-gray-900/98 backdrop-blur-sm flex flex-col items-center justify-center p-4 z-30 border-t border-gray-850">
-            <div className="absolute inset-0 overflow-hidden rounded-b-2xl pointer-events-none">
+          <div className="absolute inset-0 rounded-2xl bg-gray-900/98 backdrop-blur-sm flex flex-col items-center justify-center px-5 py-6 sm:px-6 sm:py-7 z-30 border border-gray-800">
+            <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
               {Array(16).fill(0).map((_, i) => <Dot key={i} i={i} />)}
             </div>
 
-            <div className="relative z-10 text-center w-full space-y-1.5 flex flex-col items-center">
-              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-yellow-400">✨ Vũ trụ gọi tên</p>
+            <div className="relative z-10 text-center w-full space-y-2 flex flex-col items-center">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-yellow-400">✨ Vũ trụ gọi tên</p>
 
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden border border-yellow-400/20 shadow-md">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border border-yellow-400/20 shadow-md">
                 <img src={mapped.product.image_url} alt={mapped.product.name} className="w-full h-full object-cover" />
               </div>
 
-              <p className="text-xs sm:text-sm font-black text-white leading-tight break-words px-2 max-w-full text-center">
+              <p className="text-sm sm:text-base font-black text-white leading-tight break-words px-2 max-w-full text-center">
                 {mapped.product.name}
               </p>
 
