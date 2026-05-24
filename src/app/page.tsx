@@ -80,9 +80,9 @@ export default function Home() {
   };
   const outOfStockFruitNames = outOfStockFruitSlugs.map(s => SLUG_TO_NAME[s]).filter(Boolean);
 
-  // Enrich: combo products that include an out-of-stock fruit are also out-of-stock
+  // Enrich: combo products that include an out-of-stock fruit are also out-of-stock (except hop-ngu-sac)
   const enrichedProducts = products.map(p =>
-    p.fruits?.length && p.fruits.some(f => outOfStockFruitSlugs.includes(f))
+    p.slug !== "hop-ngu-sac" && p.fruits?.length && p.fruits.some(f => outOfStockFruitSlugs.includes(f))
       ? { ...p, is_in_stock: false }
       : p
   );
