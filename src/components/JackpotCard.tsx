@@ -272,39 +272,41 @@ export default function JackpotCard({ outOfStockSlugs = [], onPhaseChange }: Jac
 
   return (
     /* Standalone card — no col-span, used as a section element */
-    <div className="relative rounded-2xl p-[3px] overflow-visible w-full">
-      {/* LED rotating border */}
-      <div
-        className="jackpot-led-bg absolute inset-0 rounded-2xl pointer-events-none z-0"
-        style={{ background: "conic-gradient(#22c55e, #f59e0b, #ef4444, #a855f7, #06b6d4, #22c55e)", transformOrigin: "center" }}
-      />
-
-      {/* Physical Lever/Handle on the right side - Clicking it triggers spin! */}
+    <div className="relative rounded-2xl overflow-visible w-full">
+      {/* Physical Lever/Handle on the right side - Vertical pull-down action! */}
       {activeFruits.length >= 2 && (
-        <>
+        <div className="absolute -right-4 top-[25%] w-8 h-28 z-30 select-none hidden sm:block">
           {/* Base socket sticking to the card */}
-          <div className="absolute -right-1 top-[42%] w-3.5 h-6 bg-gray-800 border-l border-gray-700 rounded-r-md z-20 shadow-md shadow-black/50" />
+          <div className="absolute left-2.5 bottom-0 w-4 h-6 bg-gradient-to-r from-gray-800 to-gray-700 rounded shadow-md border border-gray-600/30 z-20" />
           
-          {/* Lever Arm & Red Knob */}
+          {/* Lever Arm & Red Knob Container */}
           <div 
             onClick={phase === "idle" ? spin : undefined}
-            className={`absolute -right-3 top-[18%] w-8 h-20 origin-bottom cursor-pointer z-30 select-none`}
-            style={{
-              transformOrigin: "bottom center",
-              transform: leverActive ? "rotate(80deg) translateY(12px)" : "rotate(-10deg)",
-              transition: leverActive ? "transform 140ms cubic-bezier(0.4, 0, 0.2, 1)" : "transform 350ms cubic-bezier(0.175, 0.885, 0.32, 1.275)"
-            }}
+            className="absolute left-4 bottom-4 w-1 h-16 origin-bottom cursor-pointer z-30"
           >
-            {/* Metal rod */}
-            <div className="absolute left-1/2 -translate-x-1/2 w-1.5 h-14 bg-gradient-to-r from-gray-400 via-gray-200 to-gray-500 rounded-t-full shadow-inner" />
-            {/* Glowing Red Ball (Knob) */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -mt-4.5 w-6 h-6 bg-gradient-to-br from-red-400 via-red-500 to-red-700 rounded-full shadow-[0_0_12px_rgba(239,68,68,0.7)] border border-red-400/30 hover:scale-110 active:scale-95 transition-transform" />
+            {/* Metal Rod - Scales down vertically when pulled */}
+            <div 
+              className="w-1.5 bg-gradient-to-r from-gray-400 via-gray-200 to-gray-500 rounded-t-full origin-bottom shadow-inner"
+              style={{
+                height: "60px",
+                transform: leverActive ? "scaleY(0.15) translateY(12px)" : "scaleY(1)",
+                transition: leverActive ? "transform 140ms ease-in" : "transform 350ms cubic-bezier(0.175, 0.885, 0.32, 1.275)"
+              }}
+            />
+            {/* Glowing Red Ball (Knob) - Moves straight down from top to bottom */}
+            <div 
+              className="absolute left-1/2 -translate-x-1/2 w-6 h-6 bg-gradient-to-br from-red-400 via-red-500 to-red-700 rounded-full shadow-[0_0_15px_rgba(239,68,68,0.85)] border border-red-400/30 hover:scale-110 active:scale-95 transition-all"
+              style={{
+                top: leverActive ? "48px" : "-12px",
+                transition: leverActive ? "top 140ms ease-in" : "top 350ms cubic-bezier(0.175, 0.885, 0.32, 1.275)"
+              }}
+            />
           </div>
-        </>
+        </div>
       )}
 
       {/* Card body */}
-      <div className="relative bg-gray-900 rounded-[14px] p-4 flex flex-col gap-3 overflow-visible z-10">
+      <div className="relative bg-gray-900 rounded-2xl p-4 flex flex-col gap-3 overflow-visible z-10 border border-gray-800 shadow-2xl shadow-black/50">
 
         {/* Header row: title + frog */}
         <div className="flex items-center justify-between">
@@ -323,6 +325,17 @@ export default function JackpotCard({ outOfStockSlugs = [], onPhaseChange }: Jac
             <Reel key={i} onMount={el => { strips.current[i] = el; }} />
           ))}
         </div>
+
+        {/* Mobile-only "Gạt cần ngay thôi" spin button inside JackpotCard */}
+        {activeFruits.length >= 2 && (
+          <button
+            onClick={spin}
+            disabled={phase !== "idle"}
+            className="w-full py-3 rounded-xl font-black uppercase tracking-widest text-xs select-none lg:hidden bg-gradient-to-r from-green-600 to-emerald-500 text-white shadow-lg animate-glow-pulse active:scale-95 disabled:opacity-80 transition-all cursor-pointer disabled:cursor-not-allowed mt-1"
+          >
+            {phase === "spinning" ? "Đang quay..." : "Gạt cần ngay thôi"}
+          </button>
+        )}
 
         {/* Spin button status when suspended */}
         {activeFruits.length < 2 && (

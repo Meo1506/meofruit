@@ -204,11 +204,7 @@ export default function Home() {
               <button
                 onClick={() => window.dispatchEvent(new CustomEvent("trigger-jackpot-spin"))}
                 disabled={jackpotPhase !== "idle"}
-                className={`flex items-center space-x-3 bg-gradient-to-r ${
-                  jackpotPhase === "idle"
-                    ? "from-green-600 to-emerald-500 hover:scale-105 active:scale-95 cursor-pointer shadow-lg animate-glow-pulse text-white"
-                    : "from-gray-600 to-gray-500 cursor-not-allowed text-gray-300"
-                } px-5 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all select-none`}
+                className="flex items-center space-x-3 bg-gradient-to-r from-green-600 to-emerald-500 text-white px-5 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg animate-glow-pulse transition-all select-none hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-80 disabled:cursor-not-allowed"
               >
                 <span>{jackpotPhase === "spinning" ? "Đang quay..." : "Gạt cần ngay thôi"}</span>
                 <span className="animate-point-right text-lg leading-none">👉</span>
