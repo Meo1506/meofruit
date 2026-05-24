@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <rect width="400" height="400" fill="#f3f4f6"/>
+  <g transform="translate(200 200)" fill="none" stroke="#16a34a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="0" cy="10" r="70" fill="#dcfce7"/>
+    <path d="M -10 -55 Q 0 -75 15 -55" />
+    <path d="M 18 -52 L 35 -75" />
+  </g>
+  <text x="200" y="320" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="#9ca3af" letter-spacing="2">CHƯA CÓ ẢNH</text>
+</svg>
