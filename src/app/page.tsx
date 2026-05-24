@@ -8,7 +8,7 @@ import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 
-const JackpotCard = dynamic(() => import("@/components/JackpotCard"), { ssr: false });
+const JackpotCard = dynamic<{ outOfStockSlugs?: string[] }>(() => import("@/components/JackpotCard"), { ssr: false });
 
 const GROUP_ORDER = ["Hộp Mix Sẵn", "Hộp Tự Chọn", "Hộp Nguyên Bản"];
 const GROUP_IDS: Record<string, string> = {
