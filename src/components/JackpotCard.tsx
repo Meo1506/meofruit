@@ -176,7 +176,7 @@ export default function JackpotCard({ outOfStockSlugs = [], onPhaseChange }: Jac
   }, []);
 
   const spin = useCallback(() => {
-    if (phase !== "idle") return;
+    if (phase === "spinning") return; // chặn khi đang quay, cho phép respin từ result
 
     setPhase("spinning");
     setResult(null);
@@ -187,6 +187,13 @@ export default function JackpotCard({ outOfStockSlugs = [], onPhaseChange }: Jac
     const targets = Array(5).fill(0).map(() => {
       const pick = activeFruits[Math.floor(Math.random() * activeFruits.length)];
       return FRUITS.findIndex(f => f.slug === pick.slug);
+    });
+
+    // Clear transitions còn sót lại từ lần result trước để loop chạy mượt
+    strips.current.forEach((el, i) => {
+      if (!el) return;
+      el.style.transition = "none";
+      el.style.transform = `translateY(${INIT_YS[i]}px)`;
     });
     ys.current = [...INIT_YS];
 
@@ -281,7 +288,7 @@ export default function JackpotCard({ outOfStockSlugs = [], onPhaseChange }: Jac
           
           {/* Lever Arm & Red Knob Container - centered above socket */}
           <div
-            onClick={phase === "idle" ? spin : undefined}
+            onClick={phase !== "spinning" ? spin : undefined}
             className="absolute left-1/2 -translate-x-1/2 bottom-2 w-8 h-28 cursor-pointer z-30"
           >
             {/* Metal Rod - Scales down vertically from bottom-2 */}
@@ -331,7 +338,7 @@ export default function JackpotCard({ outOfStockSlugs = [], onPhaseChange }: Jac
         {activeFruits.length >= 2 && (
           <button
             onClick={spin}
-            disabled={phase !== "idle"}
+            disabled={phase === "spinning"}
             className="w-full py-3 rounded-xl font-black uppercase tracking-widest text-xs select-none lg:hidden bg-gradient-to-r from-green-600 to-emerald-500 text-white shadow-lg animate-glow-pulse active:scale-95 disabled:opacity-80 transition-all cursor-pointer disabled:cursor-not-allowed mt-1"
           >
             {phase === "spinning" ? "Đang quay..." : "Gạt cần ngay thôi"}
@@ -386,7 +393,8 @@ export default function JackpotCard({ outOfStockSlugs = [], onPhaseChange }: Jac
                   }
                 </button>
                 <button
-                  onClick={reset}
+                  onClick={spin}
+                  title="Quay lại"
                   className="px-2.5 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors"
                 >
                   <RefreshCw size={11} />
