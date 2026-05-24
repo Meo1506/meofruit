@@ -23,6 +23,56 @@ export default function AdminProducts() {
 
   const [isSyncing, setIsSyncing] = useState(false);
 
+  // States for bulk editing
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isBulkPriceModalOpen, setIsBulkPriceModalOpen] = useState(false);
+  const [bulkPrice, setBulkPrice] = useState("");
+  const [bulkSalePrice, setBulkSalePrice] = useState("");
+  const [isBulkSaving, setIsBulkSaving] = useState(false);
+
+  const handleBulkSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bulkPrice.trim()) return;
+    setIsBulkSaving(true);
+    try {
+      const price = parseInt(bulkPrice);
+      const salePrice = bulkSalePrice.trim() ? parseInt(bulkSalePrice) : null;
+
+      if (salePrice !== null && (isNaN(salePrice) || salePrice <= 0 || salePrice >= price)) {
+        alert("Giá khuyến mãi phải lớn hơn 0 và nhỏ hơn giá gốc. Để trống nếu không khuyến mãi.");
+        setIsBulkSaving(false);
+        return;
+      }
+
+      const updateData: any = {
+        price,
+        sale_price: salePrice,
+        price_formatted: price.toLocaleString('vi-VN') + "₫"
+      };
+
+      if (isSupabaseConfigured()) {
+        const { error } = await supabase
+          .from('products')
+          .update(updateData)
+          .in('id', selectedIds);
+        if (error) throw error;
+        alert(`Đã cập nhật giá cho ${selectedIds.length} sản phẩm thành công!`);
+        fetchProducts();
+      } else {
+        setProducts(products.map(p => selectedIds.includes(p.id!) ? { ...p, ...updateData } : p));
+        alert(`Đã cập nhật giá cho ${selectedIds.length} sản phẩm (Chế độ Demo)`);
+      }
+      setSelectedIds([]);
+      setIsBulkPriceModalOpen(false);
+      setBulkPrice("");
+      setBulkSalePrice("");
+    } catch (err: any) {
+      alert("Lỗi khi cập nhật giá hàng loạt: " + (err?.message || err));
+    } finally {
+      setIsBulkSaving(false);
+    }
+  };
+
   async function handleSeedFromJson() {
     if (!isSupabaseConfigured()) { alert("Chưa kết nối Supabase."); return; }
     if (!confirm(`Đồng bộ ${productsData.length} sản phẩm từ file lên Supabase?\n(Sẽ cập nhật nếu slug đã tồn tại, không xóa sản phẩm cũ.)`)) return;
@@ -339,6 +389,29 @@ export default function AdminProducts() {
            </div>
         </div>
 
+        {selectedIds.length > 0 && (
+          <div className="bg-green-50 border border-green-200 p-4 rounded-2xl flex justify-between items-center animate-in slide-in-from-top-4 duration-200 shadow-sm">
+             <div className="flex items-center space-x-2">
+                <span className="w-2.5 h-2.5 bg-green-600 rounded-full animate-ping"></span>
+                <span className="text-sm font-bold text-green-800">Đang chọn {selectedIds.length} sản phẩm</span>
+             </div>
+             <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => setIsBulkPriceModalOpen(true)}
+                  className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl text-xs uppercase tracking-wider shadow-md shadow-green-200 active:scale-95 transition-all"
+                >
+                  Sửa giá hàng loạt
+                </button>
+                <button
+                  onClick={() => setSelectedIds([])}
+                  className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold rounded-xl text-xs uppercase tracking-wider active:scale-95 transition-all"
+                >
+                  Bỏ chọn
+                </button>
+             </div>
+          </div>
+        )}
+
         <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
            <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -363,6 +436,20 @@ export default function AdminProducts() {
                 <table className="w-full text-left">
                    <thead className="bg-gray-50 border-b border-gray-100">
                       <tr>
+                         <th className="w-10 px-6 py-4">
+                            <input 
+                              type="checkbox" 
+                              checked={filteredProducts.length > 0 && selectedIds.length === filteredProducts.length}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedIds(filteredProducts.map(p => p.id!));
+                                } else {
+                                  setSelectedIds([]);
+                                }
+                              }}
+                              className="rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
+                            />
+                         </th>
                          <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Sản phẩm</th>
                          <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Danh mục</th>
                          <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Trạng thái</th>
@@ -373,7 +460,7 @@ export default function AdminProducts() {
                    <tbody className="divide-y divide-gray-50">
                       {filteredProducts.length === 0 && !loading && (
                         <tr>
-                          <td colSpan={5} className="text-center py-20 text-gray-400">
+                          <td colSpan={6} className="text-center py-20 text-gray-400">
                             <p className="text-sm font-bold mb-2">Chưa có sản phẩm nào</p>
                             <p className="text-xs">Nhấn <span className="font-black text-gray-600">🔄 Đồng bộ từ file</span> để import sản phẩm mẫu, hoặc thêm thủ công.</p>
                           </td>
@@ -381,6 +468,20 @@ export default function AdminProducts() {
                       )}
                       {filteredProducts.map((product) => (
                         <tr key={product.id} className="hover:bg-gray-50 transition-colors group">
+                           <td className="px-6 py-4 w-10">
+                              <input 
+                                type="checkbox" 
+                                checked={selectedIds.includes(product.id!)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedIds(prev => [...prev, product.id!]);
+                                  } else {
+                                    setSelectedIds(prev => prev.filter(id => id !== product.id));
+                                  }
+                                }}
+                                className="rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
+                              />
+                           </td>
                            <td className="px-6 py-4">
                               <div className="flex items-center space-x-3">
                                  <div className="w-10 h-10 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 border border-gray-100">
@@ -429,8 +530,8 @@ export default function AdminProducts() {
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setIsModalOpen(false); setIsAddingCat(false); }}></div>
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg relative z-10 overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg relative z-10 max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 flex-shrink-0">
               <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight">
                 {editingProduct ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm mới"}
               </h3>
@@ -439,7 +540,7 @@ export default function AdminProducts() {
               </button>
             </div>
             
-            <form onSubmit={handleSave} className="p-8 space-y-6">
+            <form onSubmit={handleSave} className="p-6 space-y-6 overflow-y-auto flex-1">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Tên sản phẩm</label>
@@ -654,6 +755,52 @@ export default function AdminProducts() {
                   )}
                 </button>
               </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isBulkPriceModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsBulkPriceModalOpen(false)}></div>
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm relative z-10 overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <h3 className="font-black text-gray-900 uppercase tracking-tight">Sửa giá hàng loạt</h3>
+              <button onClick={() => setIsBulkPriceModalOpen(false)} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleBulkSave} className="p-6 space-y-4">
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Giá gốc mới (VNĐ) <span className="text-red-500">*</span></label>
+                <input 
+                  type="number"
+                  min="0"
+                  required
+                  value={bulkPrice}
+                  onChange={(e) => setBulkPrice(e.target.value)}
+                  placeholder="Ví dụ: 30000"
+                  className="w-full px-5 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-green-500 font-bold"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Giá khuyến mãi mới (VNĐ) <span className="text-gray-300 normal-case">(để trống nếu không sale)</span></label>
+                <input 
+                  type="number"
+                  min="0"
+                  value={bulkSalePrice}
+                  onChange={(e) => setBulkSalePrice(e.target.value)}
+                  placeholder="Ví dụ: 25000"
+                  className="w-full px-5 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-red-500 font-bold"
+                />
+              </div>
+              <button 
+                type="submit"
+                disabled={isBulkSaving}
+                className="w-full py-4 bg-green-600 text-white font-black rounded-xl hover:bg-green-700 shadow-lg shadow-green-100 transition-all uppercase tracking-widest text-xs flex items-center justify-center disabled:opacity-75"
+              >
+                {isBulkSaving ? <Loader2 className="animate-spin mr-2" size={18} /> : "Xác nhận cập nhật"}
+              </button>
             </form>
           </div>
         </div>

@@ -17,6 +17,46 @@ export default function AdminOrders() {
   const [filterStatus, setFilterStatus] = useState("Tất cả");
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
 
+  // States for bulk order actions
+  const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+
+  async function handleBulkUpdateStatus(newStatus: string) {
+    if (selectedOrderIds.length === 0) return;
+    if (!confirm(`Bạn có chắc chắn muốn cập nhật trạng thái của ${selectedOrderIds.length} đơn hàng thành "${
+      newStatus === 'new' ? 'Đơn mới' :
+      newStatus === 'confirmed' ? 'Đã xác nhận' :
+      newStatus === 'shipping' ? 'Đang giao' :
+      newStatus === 'delivered' ? 'Đã giao đến' :
+      newStatus === 'paid' ? 'Đã thanh toán' : 'Đã hủy'
+    }"?`)) return;
+    setIsBulkUpdating(true);
+    try {
+      if (isSupabaseConfigured()) {
+        const { error } = await supabase
+          .from('orders')
+          .update({ status: newStatus })
+          .in('id', selectedOrderIds);
+        if (error) throw error;
+
+        // Insert notifications for each of the updated orders in parallel
+        const selectedOrders = orders.filter(o => selectedOrderIds.includes(o.id));
+        await Promise.all(selectedOrders.map(order => insertNotification(order, newStatus)));
+
+        alert(`Đã cập nhật trạng thái cho ${selectedOrderIds.length} đơn hàng thành công!`);
+        fetchOrders();
+      } else {
+        setOrders(orders.map(o => selectedOrderIds.includes(o.id) ? { ...o, status: newStatus } : o));
+        alert(`Đã cập nhật trạng thái cho ${selectedOrderIds.length} đơn hàng (Chế độ Demo)`);
+      }
+      setSelectedOrderIds([]);
+    } catch (err: any) {
+      alert("Lỗi khi cập nhật trạng thái hàng loạt: " + (err?.message || err));
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  }
+
   useEffect(() => {
     fetchOrders();
 
@@ -144,18 +184,54 @@ export default function AdminOrders() {
                 className="w-full pl-12 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-green-500 font-medium"
               />
            </div>
-           <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
-              {['Tất cả', 'Đơn mới', 'Đang giao', 'Đã thanh toán'].map(tab => (
-                <button 
-                  key={tab} 
-                  onClick={() => setFilterStatus(tab)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${filterStatus === tab ? 'bg-gray-900 text-white shadow-lg' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
-                >
-                  {tab}
-                </button>
-              ))}
-           </div>
+            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
+               {['Tất cả', 'Đơn mới', 'Đang giao', 'Đã thanh toán'].map(tab => (
+                 <button 
+                   key={tab} 
+                   onClick={() => setFilterStatus(tab)}
+                   className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${filterStatus === tab ? 'bg-gray-900 text-white shadow-lg' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
+                 >
+                   {tab}
+                 </button>
+               ))}
+            </div>
         </div>
+
+        {selectedOrderIds.length > 0 && (
+          <div className="bg-green-50 border border-green-200 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 animate-in slide-in-from-top-4 duration-200 shadow-sm">
+             <div className="flex items-center space-x-2">
+                <span className="w-2.5 h-2.5 bg-green-600 rounded-full animate-ping"></span>
+                <span className="text-sm font-bold text-green-800">Đang chọn {selectedOrderIds.length} đơn hàng</span>
+             </div>
+             <div className="flex items-center flex-wrap gap-2 w-full sm:w-auto">
+                <span className="text-xs font-bold text-gray-500 mr-1 uppercase">Cập nhật trạng thái:</span>
+                <select
+                  disabled={isBulkUpdating}
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      handleBulkUpdateStatus(e.target.value);
+                      e.target.value = ""; // Reset
+                    }
+                  }}
+                  className="bg-white border border-gray-200 px-3 py-2 rounded-xl font-bold text-xs focus:ring-2 focus:ring-green-500 cursor-pointer"
+                >
+                  <option value="">-- Chọn trạng thái --</option>
+                  <option value="new">Đơn mới</option>
+                  <option value="confirmed">Đã xác nhận</option>
+                  <option value="shipping">Đang giao</option>
+                  <option value="delivered">Đã giao đến</option>
+                  <option value="paid">Đã thanh toán</option>
+                  <option value="cancelled">Đã hủy</option>
+                </select>
+                <button
+                  onClick={() => setSelectedOrderIds([])}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold rounded-xl text-xs uppercase tracking-wider active:scale-95 transition-all"
+                >
+                  Bỏ chọn
+                </button>
+             </div>
+          </div>
+        )}
 
         {/* Orders Table */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[400px]">
@@ -169,6 +245,20 @@ export default function AdminOrders() {
                 <table className="w-full text-left text-sm">
                    <thead className="bg-gray-50 border-b border-gray-100">
                       <tr>
+                         <th className="w-10 px-6 py-4">
+                            <input 
+                              type="checkbox" 
+                              checked={filteredOrders.length > 0 && selectedOrderIds.length === filteredOrders.length}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedOrderIds(filteredOrders.map(o => o.id));
+                                } else {
+                                  setSelectedOrderIds([]);
+                                }
+                              }}
+                              className="rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
+                            />
+                         </th>
                          <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Khách hàng</th>
                          <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Ngày đặt</th>
                          <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Tổng tiền</th>
@@ -179,6 +269,20 @@ export default function AdminOrders() {
                    <tbody className="divide-y divide-gray-50">
                       {filteredOrders.length > 0 ? filteredOrders.map((order) => (
                         <tr key={order.id} className="hover:bg-gray-50 transition-colors group">
+                           <td className="px-6 py-4">
+                              <input 
+                                type="checkbox" 
+                                checked={selectedOrderIds.includes(order.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedOrderIds(prev => [...prev, order.id]);
+                                  } else {
+                                    setSelectedOrderIds(prev => prev.filter(id => id !== order.id));
+                                  }
+                                }}
+                                className="rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
+                              />
+                           </td>
                            <td className="px-6 py-4">
                               <div>
                                  <p className="font-black text-gray-900">{order.customer_name}</p>
@@ -214,7 +318,7 @@ export default function AdminOrders() {
                         </tr>
                       )) : (
                         <tr>
-                           <td colSpan={5} className="py-20 text-center text-gray-400 font-medium italic">
+                           <td colSpan={6} className="py-20 text-center text-gray-400 font-medium italic">
                               Chưa có đơn hàng nào.
                            </td>
                         </tr>
