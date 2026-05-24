@@ -1,13 +1,14 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { Mail, Lock, Eye, EyeOff, Loader2, User, Phone, MapPin, CheckCircle2 } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Loader2, User, Phone, MapPin, AtSign } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
     fullName: "",
+    username: "",
     email: "",
     phone: "",
     address: "",
@@ -17,67 +18,70 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSubmitted] = useState(false);
   const router = useRouter();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    // Username: chỉ cho phép chữ thường, số, dấu gạch dưới
+    if (name === "username") {
+      setFormData({ ...formData, username: value.toLowerCase().replace(/[^a-z0-9_]/g, "") });
+      return;
+    }
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (formData.password !== formData.confirmPassword) {
       setError("Mật khẩu xác nhận không khớp.");
       return;
     }
-    
+    if (formData.username.length < 3) {
+      setError("Tên đăng nhập phải có ít nhất 3 ký tự.");
+      return;
+    }
+
     setLoading(true);
     setError("");
 
     try {
-      const { error } = await supabase.auth.signUp({
+      // Kiểm tra username đã tồn tại chưa
+      const { data: existing } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("username", formData.username)
+        .maybeSingle();
+
+      if (existing) {
+        setError("Tên đăng nhập này đã được sử dụng. Vui lòng chọn tên khác.");
+        return;
+      }
+
+      const { error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
           data: {
             full_name: formData.fullName,
+            username: formData.username,
             phone: formData.phone,
             address: formData.address,
           }
         }
       });
 
-      if (error) throw error;
-      
-      setSubmitted(true);
-    } catch (err: any) {
-      setError(err.message || "Đăng ký thất bại. Vui lòng thử lại.");
+      if (signUpError) throw signUpError;
+
+      // Đăng ký thành công → vào tài khoản luôn (không cần xác nhận email)
+      router.push("/tai-khoan");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Đăng ký thất bại. Vui lòng thử lại.";
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
-
-  if (success) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center pt-20 pb-20 px-4">
-        <div className="bg-white w-full max-w-md rounded-[3rem] shadow-xl border border-gray-100 p-12 text-center">
-          <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 size={40} />
-          </div>
-          <h2 className="text-2xl font-black text-gray-900 mb-4 uppercase tracking-tight">Đăng Ký Thành Công!</h2>
-          <p className="text-gray-500 mb-8 font-medium">
-            Vui lòng kiểm tra email của bạn để xác nhận tài khoản trước khi đăng nhập.
-          </p>
-          <button 
-            onClick={() => router.push("/dang-nhap")}
-            className="w-full py-4 bg-green-600 text-white font-black rounded-2xl hover:bg-green-700 transition-all uppercase tracking-widest text-xs"
-          >
-            Đi đến Đăng nhập
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center pt-32 pb-20 px-4">
@@ -95,73 +99,103 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleRegister} className="space-y-6">
+            {/* Họ tên + Tên đăng nhập */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Họ và tên</label>
                 <div className="relative">
                   <User className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                  <input 
+                  <input
                     name="fullName"
                     required
                     value={formData.fullName}
                     onChange={handleInputChange}
+                    placeholder="Nguyễn Văn A"
                     className="w-full pl-14 pr-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-green-500 font-bold transition-all"
                   />
                 </div>
               </div>
               <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">
+                  Tên đăng nhập
+                </label>
+                <div className="relative">
+                  <AtSign className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <input
+                    name="username"
+                    required
+                    minLength={3}
+                    maxLength={30}
+                    value={formData.username}
+                    onChange={handleInputChange}
+                    placeholder="vd: nguyen_a"
+                    className="w-full pl-14 pr-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-green-500 font-bold transition-all"
+                  />
+                </div>
+                <p className="text-[10px] text-gray-400 mt-1 ml-1">Chữ thường, số, dấu gạch dưới</p>
+              </div>
+            </div>
+
+            {/* SĐT + Email */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
                 <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Số điện thoại</label>
                 <div className="relative">
                   <Phone className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                  <input 
+                  <input
                     name="phone"
                     required
                     value={formData.phone}
                     onChange={handleInputChange}
+                    placeholder="0912 345 678"
+                    className="w-full pl-14 pr-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-green-500 font-bold transition-all"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Địa chỉ Email</label>
+                <div className="relative">
+                  <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <input
+                    name="email"
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="example@gmail.com"
                     className="w-full pl-14 pr-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-green-500 font-bold transition-all"
                   />
                 </div>
               </div>
             </div>
 
-            <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Địa chỉ Email</label>
-              <div className="relative">
-                <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <input 
-                  name="email"
-                  type="email"
-                  required
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="w-full pl-14 pr-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-green-500 font-bold transition-all"
-                />
-              </div>
-            </div>
-
+            {/* Địa chỉ giao hàng */}
             <div>
               <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Địa chỉ giao hàng</label>
               <div className="relative">
                 <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <input 
+                <input
                   name="address"
                   required
                   value={formData.address}
                   onChange={handleInputChange}
+                  placeholder="Số nhà, đường, phường/xã, quận/huyện..."
                   className="w-full pl-14 pr-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-green-500 font-bold transition-all"
                 />
               </div>
             </div>
 
+            {/* Mật khẩu */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Mật khẩu</label>
                 <div className="relative">
                   <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                  <input 
+                  <input
                     name="password"
                     type={showPassword ? "text" : "password"}
                     required
+                    minLength={6}
                     value={formData.password}
                     onChange={handleInputChange}
                     className="w-full pl-14 pr-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-green-500 font-bold transition-all"
@@ -172,15 +206,15 @@ export default function RegisterPage() {
                 <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Xác nhận mật khẩu</label>
                 <div className="relative">
                   <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                  <input 
+                  <input
                     name="confirmPassword"
                     type={showPassword ? "text" : "password"}
                     required
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
-                    className="w-full pl-14 pr-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-green-500 font-bold transition-all"
+                    className="w-full pl-14 pr-14 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-green-500 font-bold transition-all"
                   />
-                  <button 
+                  <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
@@ -191,7 +225,7 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <button 
+            <button
               type="submit"
               disabled={loading}
               className="w-full py-5 bg-green-600 text-white font-black rounded-2xl hover:bg-green-700 shadow-lg shadow-green-100 uppercase tracking-widest text-sm transition-all flex items-center justify-center"

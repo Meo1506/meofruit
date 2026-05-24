@@ -1,12 +1,12 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { Mail, Lock, Eye, EyeOff, Loader2, ArrowRight } from "lucide-react";
+import { Lock, Eye, EyeOff, Loader2, ArrowRight, AtSign } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState(""); // email hoặc username
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -19,16 +19,33 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
+      let loginEmail = identifier.trim();
+
+      // Nếu không chứa @ thì coi là username → tra email từ profiles
+      if (!loginEmail.includes("@")) {
+        const { data: profile, error: lookupError } = await supabase
+          .from("profiles")
+          .select("email")
+          .eq("username", loginEmail.toLowerCase())
+          .maybeSingle();
+
+        if (lookupError || !profile?.email) {
+          throw new Error("Tên đăng nhập không tồn tại.");
+        }
+        loginEmail = profile.email;
+      }
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: loginEmail,
         password,
       });
 
-      if (error) throw error;
-      
+      if (signInError) throw signInError;
+
       router.push("/tai-khoan");
-    } catch (err: any) {
-      setError(err.message || "Đăng nhập thất bại. Vui lòng thử lại.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Đăng nhập thất bại. Vui lòng thử lại.";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -51,14 +68,17 @@ export default function LoginPage() {
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Địa chỉ Email</label>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">
+                Email hoặc Tên đăng nhập
+              </label>
               <div className="relative">
-                <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <input 
-                  type="email"
+                <AtSign className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <input
+                  type="text"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  placeholder="example@gmail.com hoặc ten_dang_nhap"
                   className="w-full pl-14 pr-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-green-500 font-bold transition-all"
                 />
               </div>
@@ -71,14 +91,14 @@ export default function LoginPage() {
               </div>
               <div className="relative">
                 <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <input 
+                <input
                   type={showPassword ? "text" : "password"}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-14 pr-14 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-green-500 font-bold transition-all"
                 />
-                <button 
+                <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
@@ -88,7 +108,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <button 
+            <button
               type="submit"
               disabled={loading}
               className="w-full py-5 bg-green-600 text-white font-black rounded-2xl hover:bg-green-700 shadow-lg shadow-green-100 uppercase tracking-widest text-sm transition-all flex items-center justify-center group"
@@ -109,11 +129,11 @@ export default function LoginPage() {
             </p>
           </div>
         </div>
-        
+
         <div className="bg-gray-50 p-6 text-center border-t border-gray-100">
-           <p className="text-[10px] text-gray-400 font-bold leading-relaxed uppercase tracking-wider">
-             Cam kết bảo mật thông tin khách hàng 100%
-           </p>
+          <p className="text-[10px] text-gray-400 font-bold leading-relaxed uppercase tracking-wider">
+            Cam kết bảo mật thông tin khách hàng 100%
+          </p>
         </div>
       </div>
     </div>
