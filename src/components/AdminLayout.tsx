@@ -47,11 +47,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("is_admin")
+        .select("is_admin, role")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
-      if (!profile?.is_admin) {
+      const isAdminUser = profile?.is_admin === true || profile?.role === "admin";
+      if (!isAdminUser) {
         router.replace("/?error=admin_required");
         return;
       }
