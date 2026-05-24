@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { ShoppingBag, Users, TrendingUp, CreditCard } from "lucide-react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 interface RecentOrder {
   id: string;
@@ -45,6 +45,30 @@ export default function AdminDashboard() {
       setRecentOrders(recentRes.data || []);
     }
     fetchStats();
+
+    if (isSupabaseConfigured()) {
+      const channel = supabase
+        .channel("realtime-admin-dashboard")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "orders" },
+          () => {
+            fetchStats();
+          }
+        )
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "profiles" },
+          () => {
+            fetchStats();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
   }, []);
 
   const formatCurrency = (amount: number) =>
