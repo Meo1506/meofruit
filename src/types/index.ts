@@ -41,7 +41,7 @@ export interface SiteSettings {
 }
 
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
-  webName: "FRESH FRUIT",
+  webName: "Meo Fruit",
   ownerName: "Nam Nguyễn",
   bankAccount: {
     number: "9916297232",
