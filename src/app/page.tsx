@@ -174,20 +174,35 @@ export default function Home() {
           <div className="relative w-full max-w-sm mx-auto min-h-[380px] flex items-center justify-center">
             
             {/* Desktop-only Universe Signal Promo Text - Positioned exactly to the left of the card boundary */}
-            <div className="hidden lg:flex absolute right-[calc(100%+48px)] top-1/2 -translate-y-1/2 flex-col items-start space-y-3 w-[280px] lg:w-[320px] text-left animate-in fade-in slide-in-from-left-6 duration-700">
+            <div className="hidden lg:flex absolute right-[calc(100%+48px)] top-1/2 -translate-y-1/2 flex-col items-start space-y-4 w-[280px] lg:w-[320px] text-left animate-in fade-in slide-in-from-left-6 duration-700">
               <span className="inline-block px-3 py-1 rounded-full bg-yellow-400/20 text-yellow-700 text-[10px] font-black uppercase tracking-wider animate-pulse">
                 ✨ Tín hiệu vũ trụ
               </span>
-              <h2 className="text-2xl lg:text-3xl font-black text-gray-950 tracking-tight leading-tight uppercase">
+              <h2 className="text-3xl lg:text-4xl font-black text-gray-950 tracking-tight leading-none uppercase">
                 Không biết <br />
                 <span className="bg-gradient-to-r from-green-600 via-emerald-500 to-teal-600 bg-clip-text text-transparent italic font-medium">chọn gì?</span>
               </h2>
-              <p className="text-xs font-bold text-gray-400 leading-relaxed">
-                Đừng suy nghĩ nhiều! Hãy để <span className="text-yellow-600 font-extrabold">tín hiệu vũ trụ</span> gạt cần chọn ngay combo trái cây tươi ngon đỉnh chóp cho bạn. 🎰🚀
-              </p>
-              <div className="flex items-center space-x-1.5 text-[9px] font-black text-green-600 uppercase tracking-widest">
+              
+              <style>{`
+                @keyframes point-right {
+                  0%, 100% { transform: translateX(0); }
+                  50% { transform: translateX(10px); }
+                }
+                .animate-point-right {
+                  animation: point-right 0.8s infinite ease-in-out;
+                }
+                @keyframes glow-pulse {
+                  0%, 100% { box-shadow: 0 0 5px rgba(34, 197, 94, 0.4); }
+                  50% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.8); }
+                }
+                .animate-glow-pulse {
+                  animation: glow-pulse 2s infinite ease-in-out;
+                }
+              `}</style>
+
+              <div className="flex items-center space-x-3 bg-gradient-to-r from-green-600 to-emerald-500 text-white px-5 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg animate-glow-pulse select-none group cursor-pointer hover:scale-105 active:scale-95 transition-all">
                 <span>Gạt cần ngay thôi</span>
-                <span className="animate-bounce text-sm">👉</span>
+                <span className="animate-point-right text-lg leading-none">👉</span>
               </div>
             </div>
 
