@@ -540,7 +540,7 @@ export default function AdminProducts() {
               </button>
             </div>
             
-            <form onSubmit={handleSave} className="p-6 space-y-6 overflow-y-auto flex-1">
+            <form id="product-form" onSubmit={handleSave} className="p-6 space-y-6 overflow-y-auto flex-1">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Tên sản phẩm</label>
@@ -744,18 +744,18 @@ export default function AdminProducts() {
                   </details>
                 </div>
               </div>
-
-              <div className="pt-4 flex space-x-3">
-                <button type="button" onClick={() => { setIsModalOpen(false); setIsAddingCat(false); }} disabled={isSaving} className="flex-1 py-4 bg-gray-100 text-gray-600 font-black rounded-xl hover:bg-gray-200 transition-all uppercase tracking-widest text-xs disabled:opacity-50">Hủy</button>
-                <button type="submit" disabled={isSaving} className="flex-[2] py-4 bg-green-600 text-white font-black rounded-xl hover:bg-green-700 shadow-lg shadow-green-100 transition-all uppercase tracking-widest text-xs flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed">
-                  {isSaving ? (
-                    <><Loader2 size={18} className="mr-2 animate-spin" /> Đang lưu...</>
-                  ) : (
-                    <><Save size={18} className="mr-2" /> Lưu sản phẩm</>
-                  )}
-                </button>
-              </div>
             </form>
+
+            <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex-shrink-0 flex space-x-3">
+              <button type="button" onClick={() => { setIsModalOpen(false); setIsAddingCat(false); }} disabled={isSaving} className="flex-1 py-4 bg-gray-100 text-gray-600 font-black rounded-xl hover:bg-gray-200 transition-all uppercase tracking-widest text-xs disabled:opacity-50">Hủy</button>
+              <button type="submit" form="product-form" disabled={isSaving} className="flex-[2] py-4 bg-green-600 text-white font-black rounded-xl hover:bg-green-700 shadow-lg shadow-green-100 transition-all uppercase tracking-widest text-xs flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed">
+                {isSaving ? (
+                  <><Loader2 size={18} className="mr-2 animate-spin" /> Đang lưu...</>
+                ) : (
+                  <><Save size={18} className="mr-2" /> Lưu sản phẩm</>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
