@@ -21,6 +21,37 @@ export default function AdminProducts() {
   const [isAddingCat, setIsAddingCat] = useState(false);
   const [newCatName, setNewCatName] = useState("");
 
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  async function handleSeedFromJson() {
+    if (!isSupabaseConfigured()) { alert("Chưa kết nối Supabase."); return; }
+    if (!confirm(`Đồng bộ ${productsData.length} sản phẩm từ file lên Supabase?\n(Sẽ cập nhật nếu slug đã tồn tại, không xóa sản phẩm cũ.)`)) return;
+    setIsSyncing(true);
+    try {
+      const rows = productsData.map((p) => ({
+        id: p.id,
+        slug: p.slug,
+        name: p.name,
+        price: p.price,
+        price_formatted: p.price_formatted,
+        image_url: p.image_url,
+        category: p.category,
+        description: p.description ?? null,
+        is_in_stock: p.is_in_stock ?? true,
+        product_type: p.product_type ?? "standard",
+        fruits: (p as any).fruits ?? [],
+      }));
+      const { error } = await supabase.from("products").upsert(rows, { onConflict: "slug" });
+      if (error) throw error;
+      alert(`Đã đồng bộ ${rows.length} sản phẩm thành công!`);
+      fetchProducts();
+    } catch (err: unknown) {
+      alert("Lỗi: " + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setIsSyncing(false);
+    }
+  }
+
   // State cho upload ảnh
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null);
@@ -256,12 +287,22 @@ export default function AdminProducts() {
                 </p>
               </div>
            </div>
-           <button 
-             onClick={() => { setEditingProduct(null); setIsModalOpen(true); }}
-             className="flex items-center px-6 py-3 bg-green-600 text-white font-bold rounded-2xl hover:bg-green-700 shadow-lg transition-all active:scale-95"
-           >
-              <Plus size={20} className="mr-2" /> Thêm sản phẩm mới
-           </button>
+           <div className="flex items-center gap-3">
+             <button
+               onClick={handleSeedFromJson}
+               disabled={isSyncing}
+               className="flex items-center px-5 py-3 bg-gray-800 text-white font-bold rounded-2xl hover:bg-gray-900 transition-all active:scale-95 disabled:opacity-60 text-sm"
+             >
+               {isSyncing ? <Loader2 size={18} className="mr-2 animate-spin" /> : <span className="mr-2 text-base">🔄</span>}
+               Đồng bộ từ file
+             </button>
+             <button
+               onClick={() => { setEditingProduct(null); setIsModalOpen(true); }}
+               className="flex items-center px-6 py-3 bg-green-600 text-white font-bold rounded-2xl hover:bg-green-700 shadow-lg transition-all active:scale-95"
+             >
+               <Plus size={20} className="mr-2" /> Thêm sản phẩm mới
+             </button>
+           </div>
         </div>
 
         <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
@@ -296,6 +337,14 @@ export default function AdminProducts() {
                       </tr>
                    </thead>
                    <tbody className="divide-y divide-gray-50">
+                      {filteredProducts.length === 0 && !loading && (
+                        <tr>
+                          <td colSpan={5} className="text-center py-20 text-gray-400">
+                            <p className="text-sm font-bold mb-2">Chưa có sản phẩm nào</p>
+                            <p className="text-xs">Nhấn <span className="font-black text-gray-600">🔄 Đồng bộ từ file</span> để import sản phẩm mẫu, hoặc thêm thủ công.</p>
+                          </td>
+                        </tr>
+                      )}
                       {filteredProducts.map((product) => (
                         <tr key={product.id} className="hover:bg-gray-50 transition-colors group">
                            <td className="px-6 py-4">
