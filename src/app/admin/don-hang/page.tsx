@@ -19,6 +19,23 @@ export default function AdminOrders() {
 
   useEffect(() => {
     fetchOrders();
+
+    if (isSupabaseConfigured()) {
+      const channel = supabase
+        .channel("realtime-admin-orders")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "orders" },
+          () => {
+            fetchOrders();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
   }, []);
 
   async function fetchOrders() {

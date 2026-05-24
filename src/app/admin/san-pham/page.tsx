@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Plus, Search, Edit2, Trash2, Loader2, X, Save, Image as ImageIcon, MinusCircle, Check, Upload, AlertTriangle } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Product } from "@/types";
-import { supabase, isSupabaseConfigured, getErrorMessage } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured, getErrorMessage, autoSeedIfEmpty } from "@/lib/supabase";
 import { uploadProductImage, validateImageFile } from "@/lib/uploadImage";
 import { slugify } from "@/lib/slugify";
 import productsData from "@/data/products.json";
@@ -108,8 +108,38 @@ export default function AdminProducts() {
   };
 
   useEffect(() => {
-    fetchProducts();
-    fetchCategories();
+    async function init() {
+      if (isSupabaseConfigured()) {
+        await autoSeedIfEmpty();
+      }
+      fetchProducts();
+      fetchCategories();
+    }
+    init();
+
+    if (isSupabaseConfigured()) {
+      const channel = supabase
+        .channel("realtime-admin-products")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "products" },
+          () => {
+            fetchProducts();
+          }
+        )
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "categories" },
+          () => {
+            fetchCategories();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
   }, []);
 
   async function fetchProducts() {

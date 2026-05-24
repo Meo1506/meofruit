@@ -4,7 +4,7 @@ import productsData from "@/data/products.json";
 import { Product } from "@/types";
 import ProductCard from "@/components/ProductCard";
 import SectionNav from "@/components/SectionNav";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured, autoSeedIfEmpty } from "@/lib/supabase";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 
@@ -33,6 +33,8 @@ export default function Home() {
   useEffect(() => {
     async function load() {
       if (isSupabaseConfigured()) {
+        // Tự động seed nếu database rỗng trước khi load
+        await autoSeedIfEmpty();
         const { data } = await supabase.from("products").select("*").limit(50);
         if (data && data.length > 0) {
           setProducts(data);
@@ -42,6 +44,23 @@ export default function Home() {
       setProducts(productsData as Product[]);
     }
     load();
+
+    if (isSupabaseConfigured()) {
+      const channel = supabase
+        .channel("realtime-products-home")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "products" },
+          () => {
+            load();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
   }, []);
 
   // Individual fruit product slugs — used to derive combo availability

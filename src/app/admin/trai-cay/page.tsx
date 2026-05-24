@@ -20,7 +20,26 @@ export default function FruitStockPage() {
   const [loading, setLoading]       = useState(true);
   const [saveStatus, setSaveStatus] = useState<Record<string, SaveStatus>>({});
 
-  useEffect(() => { fetchStock(); }, []);
+  useEffect(() => {
+    fetchStock();
+
+    if (isSupabaseConfigured()) {
+      const channel = supabase
+        .channel("realtime-admin-fruit-stock")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "products" },
+          () => {
+            fetchStock();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, []);
 
   async function fetchStock() {
     setLoading(true);

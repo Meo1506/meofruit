@@ -13,6 +13,23 @@ export default function AdminCategories() {
 
   useEffect(() => {
     fetchCategories();
+
+    if (isSupabaseConfigured()) {
+      const channel = supabase
+        .channel("realtime-admin-categories")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "categories" },
+          () => {
+            fetchCategories();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
   }, []);
 
   async function fetchCategories() {

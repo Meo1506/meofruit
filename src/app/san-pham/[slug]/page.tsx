@@ -44,6 +44,23 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
       setLoading(false);
     }
     fetchDetail();
+
+    if (isSupabaseConfigured()) {
+      const channel = supabase
+        .channel(`realtime-product-detail-${slug}`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "products" },
+          () => {
+            fetchDetail();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
   }, [slug]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Đang tải...</div>;

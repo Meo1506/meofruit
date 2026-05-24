@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import productsData from "@/data/products.json";
 import { Product } from "@/types";
 import ProductCard from "@/components/ProductCard";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured, autoSeedIfEmpty } from "@/lib/supabase";
 
 export default function ProductsPage() {
   return (
@@ -35,6 +35,9 @@ function ProductsPageInner() {
       setIsLoading(true);
       try {
         if (isSupabaseConfigured()) {
+          // Tự động seed nếu database rỗng trước khi load
+          await autoSeedIfEmpty();
+
           // Fetch only products that are in categories set to show_on_storefront
           const { data: catData } = await supabase.from('categories').select('name').eq('show_on_storefront', true);
           const visibleCatNames = catData?.map(c => c.name) || ["Trái cây"];
@@ -57,6 +60,30 @@ function ProductsPageInner() {
       }
     }
     fetchData();
+
+    if (isSupabaseConfigured()) {
+      const channel = supabase
+        .channel("realtime-products-storefront")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "products" },
+          () => {
+            fetchData();
+          }
+        )
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "categories" },
+          () => {
+            fetchData();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
   }, []);
 
   const filteredProducts = useMemo(() => {
