@@ -146,9 +146,10 @@ type Phase = "idle" | "spinning" | "result";
 
 interface JackpotCardProps {
   outOfStockSlugs?: string[];
+  onPhaseChange?: (phase: Phase) => void;
 }
 
-export default function JackpotCard({ outOfStockSlugs = [] }: JackpotCardProps) {
+export default function JackpotCard({ outOfStockSlugs = [], onPhaseChange }: JackpotCardProps) {
   const { addToCart } = useCart();
   const [phase, setPhase]             = useState<Phase>("idle");
   const [result, setResult]           = useState<number[] | null>(null);
@@ -161,6 +162,12 @@ export default function JackpotCard({ outOfStockSlugs = [] }: JackpotCardProps) 
   const ys      = useRef<number[]>([...INIT_YS]);
   const animIds = useRef<number[]>(Array(5).fill(0));
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Expose phase to parent on change
+  useEffect(() => {
+    if (onPhaseChange) onPhaseChange(phase);
+  }, [phase, onPhaseChange]);
+
 
   useEffect(() => {
     strips.current.forEach((el, i) => {
@@ -229,7 +236,18 @@ export default function JackpotCard({ outOfStockSlugs = [] }: JackpotCardProps) 
       setPhase("result");
       playTadaa();
     }, totalMs);
-  }, [phase]);
+  }, [phase, activeFruits]);
+
+  // Trigger spin via custom window event
+  useEffect(() => {
+    const handleTrigger = () => {
+      if (phase === "idle" && activeFruits.length >= 2) {
+        spin();
+      }
+    };
+    window.addEventListener("trigger-jackpot-spin", handleTrigger);
+    return () => window.removeEventListener("trigger-jackpot-spin", handleTrigger);
+  }, [phase, activeFruits, spin]);
 
   const reset = useCallback(() => {
     setPhase("idle");
@@ -254,15 +272,39 @@ export default function JackpotCard({ outOfStockSlugs = [] }: JackpotCardProps) 
 
   return (
     /* Standalone card — no col-span, used as a section element */
-    <div className="relative rounded-2xl p-[3px] overflow-hidden w-full">
+    <div className="relative rounded-2xl p-[3px] overflow-visible w-full">
       {/* LED rotating border */}
       <div
-        className="jackpot-led-bg absolute inset-0 rounded-2xl pointer-events-none"
+        className="jackpot-led-bg absolute inset-0 rounded-2xl pointer-events-none z-0"
         style={{ background: "conic-gradient(#22c55e, #f59e0b, #ef4444, #a855f7, #06b6d4, #22c55e)", transformOrigin: "center" }}
       />
 
+      {/* Physical Lever/Handle on the right side - Clicking it triggers spin! */}
+      {activeFruits.length >= 2 && (
+        <>
+          {/* Base socket sticking to the card */}
+          <div className="absolute -right-1 top-[42%] w-3.5 h-6 bg-gray-800 border-l border-gray-700 rounded-r-md z-20 shadow-md shadow-black/50" />
+          
+          {/* Lever Arm & Red Knob */}
+          <div 
+            onClick={phase === "idle" ? spin : undefined}
+            className={`absolute -right-3 top-[18%] w-8 h-20 origin-bottom cursor-pointer z-30 select-none`}
+            style={{
+              transformOrigin: "bottom center",
+              transform: leverActive ? "rotate(80deg) translateY(12px)" : "rotate(-10deg)",
+              transition: leverActive ? "transform 140ms cubic-bezier(0.4, 0, 0.2, 1)" : "transform 350ms cubic-bezier(0.175, 0.885, 0.32, 1.275)"
+            }}
+          >
+            {/* Metal rod */}
+            <div className="absolute left-1/2 -translate-x-1/2 w-1.5 h-14 bg-gradient-to-r from-gray-400 via-gray-200 to-gray-500 rounded-t-full shadow-inner" />
+            {/* Glowing Red Ball (Knob) */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -mt-4.5 w-6 h-6 bg-gradient-to-br from-red-400 via-red-500 to-red-700 rounded-full shadow-[0_0_12px_rgba(239,68,68,0.7)] border border-red-400/30 hover:scale-110 active:scale-95 transition-transform" />
+          </div>
+        </>
+      )}
+
       {/* Card body */}
-      <div className="relative bg-gray-900 rounded-[14px] p-4 flex flex-col gap-3 overflow-hidden">
+      <div className="relative bg-gray-900 rounded-[14px] p-4 flex flex-col gap-3 overflow-visible z-10">
 
         {/* Header row: title + frog */}
         <div className="flex items-center justify-between">
@@ -282,27 +324,12 @@ export default function JackpotCard({ outOfStockSlugs = [] }: JackpotCardProps) 
           ))}
         </div>
 
-        {/* Spin button */}
-        {activeFruits.length < 2 ? (
+        {/* Spin button status when suspended */}
+        {activeFruits.length < 2 && (
           <div className="w-full py-3 rounded-xl bg-gray-800 border border-gray-700 text-center">
             <p className="text-[10px] font-black text-red-400 uppercase tracking-widest">Tạm ngừng</p>
             <p className="text-[9px] text-gray-500 mt-0.5">Không đủ trái cây trong kho</p>
           </div>
-        ) : (
-          <button
-            onClick={spin}
-            disabled={phase !== "idle"}
-            className={`
-              w-full py-3 rounded-xl font-black uppercase tracking-widest text-xs
-              transition-all duration-150 select-none
-              ${phase === "idle"
-                ? "bg-gradient-to-b from-yellow-400 to-orange-500 text-gray-900 shadow-[0_4px_0_#92400e] active:shadow-[0_1px_0_#92400e] active:translate-y-[3px] hover:from-yellow-300"
-                : "bg-gray-700 text-gray-500 cursor-not-allowed"
-              }
-            `}
-          >
-            {phase === "spinning" ? "⏳ Đang quay..." : "🎰 Quay Chọn Món"}
-          </button>
         )}
 
         {/* Result overlay */}

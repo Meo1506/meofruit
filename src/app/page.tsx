@@ -8,7 +8,7 @@ import { supabase, isSupabaseConfigured, autoSeedIfEmpty } from "@/lib/supabase"
 import Link from "next/link";
 import dynamic from "next/dynamic";
 
-const JackpotCard = dynamic<{ outOfStockSlugs?: string[] }>(() => import("@/components/JackpotCard"), { ssr: false });
+const JackpotCard = dynamic<{ outOfStockSlugs?: string[]; onPhaseChange?: (phase: string) => void }>(() => import("@/components/JackpotCard"), { ssr: false });
 
 const GROUP_ORDER = ["Hộp Mix Sẵn", "Hộp Tự Chọn", "Hộp Nguyên Bản"];
 const GROUP_IDS: Record<string, string> = {
@@ -29,6 +29,7 @@ const GROUP_EMOJIS: Record<string, string> = {
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [jackpotPhase, setJackpotPhase] = useState("idle");
 
   useEffect(() => {
     async function load() {
@@ -200,15 +201,26 @@ export default function Home() {
                 }
               `}</style>
 
-              <div className="flex items-center space-x-3 bg-gradient-to-r from-green-600 to-emerald-500 text-white px-5 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg animate-glow-pulse select-none group cursor-pointer hover:scale-105 active:scale-95 transition-all">
-                <span>Gạt cần ngay thôi</span>
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent("trigger-jackpot-spin"))}
+                disabled={jackpotPhase !== "idle"}
+                className={`flex items-center space-x-3 bg-gradient-to-r ${
+                  jackpotPhase === "idle"
+                    ? "from-green-600 to-emerald-500 hover:scale-105 active:scale-95 cursor-pointer shadow-lg animate-glow-pulse text-white"
+                    : "from-gray-600 to-gray-500 cursor-not-allowed text-gray-300"
+                } px-5 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all select-none`}
+              >
+                <span>{jackpotPhase === "spinning" ? "Đang quay..." : "Gạt cần ngay thôi"}</span>
                 <span className="animate-point-right text-lg leading-none">👉</span>
-              </div>
+              </button>
             </div>
 
             {/* Jackpot Slot Machine Card - Stays perfectly centered inside wrapper */}
             <div className="w-full z-10">
-              <JackpotCard outOfStockSlugs={outOfStockFruitSlugs} />
+              <JackpotCard 
+                outOfStockSlugs={outOfStockFruitSlugs} 
+                onPhaseChange={(phase: string) => setJackpotPhase(phase)}
+              />
             </div>
 
           </div>
