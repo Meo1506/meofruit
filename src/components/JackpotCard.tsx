@@ -275,21 +275,22 @@ export default function JackpotCard({ outOfStockSlugs = [], onPhaseChange }: Jac
     <div className="relative rounded-2xl overflow-visible w-full">
       {/* Physical Lever/Handle on the right side - Vertical pull-down action! */}
       {activeFruits.length >= 2 && (
-        <div className="absolute -right-4 top-[25%] w-8 h-28 z-30 select-none hidden sm:block">
-          {/* Base socket sticking to the card */}
-          <div className="absolute left-2.5 bottom-0 w-4 h-6 bg-gradient-to-r from-gray-800 to-gray-700 rounded shadow-md border border-gray-600/30 z-20" />
+        <div className="absolute -right-4 top-[22%] w-8 h-32 z-30 select-none hidden sm:block">
+          {/* Base socket sticking to the card - Anchored at bottom-2 */}
+          <div className="absolute left-2.5 bottom-2 w-4 h-5 bg-gradient-to-r from-gray-800 to-gray-700 rounded shadow-md border border-gray-600/30 z-20 shadow-md shadow-black/50" />
           
-          {/* Lever Arm & Red Knob Container - Expanded to w-8 for easy clicking */}
+          {/* Lever Arm & Red Knob Container - Anchored at bottom-2, matching socket */}
           <div 
             onClick={phase === "idle" ? spin : undefined}
-            className="absolute left-0 bottom-4 w-8 h-20 origin-bottom cursor-pointer z-30"
+            className="absolute left-0 bottom-2 w-8 h-28 cursor-pointer z-30"
           >
-            {/* Metal Rod - Scales down vertically when pulled */}
+            {/* Metal Rod - Scales down vertically from bottom-2 */}
             <div 
               className="absolute left-1/2 -translate-x-1/2 w-1.5 bg-gradient-to-r from-gray-400 via-gray-200 to-gray-500 rounded-t-full origin-bottom shadow-inner"
               style={{
-                height: "60px",
-                transform: leverActive ? "scaleY(0.15) translateY(12px)" : "scaleY(1)",
+                height: "64px",
+                bottom: "2px",
+                transform: leverActive ? "scaleY(0.2)" : "scaleY(1)",
                 transition: leverActive ? "transform 140ms ease-in" : "transform 350ms cubic-bezier(0.175, 0.885, 0.32, 1.275)"
               }}
             />
@@ -297,8 +298,8 @@ export default function JackpotCard({ outOfStockSlugs = [], onPhaseChange }: Jac
             <div 
               className="absolute left-1/2 -translate-x-1/2 w-6 h-6 bg-gradient-to-br from-red-400 via-red-500 to-red-700 rounded-full shadow-[0_0_15px_rgba(239,68,68,0.85)] border border-red-400/30 hover:scale-110 active:scale-95 transition-all"
               style={{
-                top: leverActive ? "48px" : "-12px",
-                transition: leverActive ? "top 140ms ease-in" : "top 350ms cubic-bezier(0.175, 0.885, 0.32, 1.275)"
+                bottom: leverActive ? "10px" : "60px",
+                transition: leverActive ? "bottom 140ms ease-in" : "bottom 350ms cubic-bezier(0.175, 0.885, 0.32, 1.275)"
               }}
             />
           </div>
@@ -345,33 +346,35 @@ export default function JackpotCard({ outOfStockSlugs = [], onPhaseChange }: Jac
           </div>
         )}
 
-        {/* Result overlay */}
+        {/* Result overlay - Positioned under the Header row to prevent covering the title */}
         {phase === "result" && mapped && (
-          <div className="absolute inset-0 rounded-[14px] bg-gray-900/96 backdrop-blur-sm flex flex-col items-center justify-center p-4 z-30">
-            <div className="absolute inset-0 overflow-hidden rounded-[14px] pointer-events-none">
-              {Array(22).fill(0).map((_, i) => <Dot key={i} i={i} />)}
+          <div className="absolute inset-x-0 bottom-0 top-[66px] rounded-b-2xl bg-gray-900/98 backdrop-blur-sm flex flex-col items-center justify-center p-4 z-30 border-t border-gray-850">
+            <div className="absolute inset-0 overflow-hidden rounded-b-2xl pointer-events-none">
+              {Array(16).fill(0).map((_, i) => <Dot key={i} i={i} />)}
             </div>
 
-            <div className="relative z-10 text-center w-full space-y-2">
-              <p className="text-[8px] font-black uppercase tracking-[0.25em] text-yellow-400">✨ Vũ trụ gọi tên</p>
+            <div className="relative z-10 text-center w-full space-y-1.5 flex flex-col items-center">
+              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-yellow-400">✨ Vũ trụ gọi tên</p>
 
-              <div className="w-16 h-16 rounded-2xl overflow-hidden mx-auto border-2 border-yellow-400/30 shadow-lg">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden border border-yellow-400/20 shadow-md">
                 <img src={mapped.product.image_url} alt={mapped.product.name} className="w-full h-full object-cover" />
               </div>
 
-              <p className="text-sm sm:text-base font-black text-white leading-tight break-words px-2 max-w-full">{mapped.product.name}</p>
+              <p className="text-xs sm:text-sm font-black text-white leading-tight break-words px-2 max-w-full text-center">
+                {mapped.product.name}
+              </p>
 
               {mapped.customFruits && (
-                <p className="text-[10px] text-gray-400 font-medium">{mapped.customFruits.join(" · ")}</p>
+                <p className="text-[8px] sm:text-[9px] text-gray-400 font-medium leading-none">{mapped.customFruits.join(" · ")}</p>
               )}
 
-              <p className="text-lg font-black text-yellow-400">{formatVND(mapped.product.price)}</p>
+              <p className="text-sm sm:text-base font-black text-yellow-400 leading-none">{formatVND(mapped.product.price)}</p>
 
-              <div className="flex gap-2 pt-1">
+              <div className="flex gap-2 pt-1 w-full max-w-[240px]">
                 <button
                   onClick={handleAdd}
                   disabled={added}
-                  className={`flex-1 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all active:scale-95 ${
+                  className={`flex-1 py-2 rounded-lg font-black uppercase tracking-widest text-[9px] transition-all active:scale-95 ${
                     added
                       ? "bg-green-600 text-white"
                       : "bg-green-500 hover:bg-green-400 text-white shadow-md shadow-green-500/30"
@@ -379,14 +382,14 @@ export default function JackpotCard({ outOfStockSlugs = [], onPhaseChange }: Jac
                 >
                   {added
                     ? "✓ Đã thêm!"
-                    : <span className="flex items-center justify-center gap-1.5"><ShoppingCart size={11} /> Thêm vào giỏ</span>
+                    : <span className="flex items-center justify-center gap-1"><ShoppingCart size={10} /> Thêm giỏ</span>
                   }
                 </button>
                 <button
                   onClick={reset}
-                  className="px-3 py-2.5 rounded-xl bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors"
+                  className="px-2.5 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors"
                 >
-                  <RefreshCw size={13} />
+                  <RefreshCw size={11} />
                 </button>
               </div>
             </div>
