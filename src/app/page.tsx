@@ -168,10 +168,33 @@ export default function Home() {
       </section>
 
       {/* Jackpot Section */}
-      <section className="py-8 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="max-w-sm mx-auto">
-            <JackpotCard outOfStockSlugs={outOfStockFruitSlugs} />
+      <section className="py-12 bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 border-y border-gray-100/80 overflow-hidden">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
+            
+            {/* Desktop-only Universe Signal Promo Text */}
+            <div className="hidden md:flex flex-col items-start space-y-4 max-w-sm text-left animate-in fade-in slide-in-from-left-6 duration-700">
+              <span className="inline-block px-3 py-1 rounded-full bg-yellow-400/20 text-yellow-700 text-[10px] font-black uppercase tracking-wider animate-pulse">
+                ✨ Tín hiệu vũ trụ
+              </span>
+              <h2 className="text-3xl lg:text-4xl font-black text-gray-950 tracking-tight leading-tight uppercase">
+                Không biết <br />
+                <span className="bg-gradient-to-r from-green-600 via-emerald-500 to-teal-600 bg-clip-text text-transparent italic font-medium">chọn gì?</span>
+              </h2>
+              <p className="text-xs lg:text-sm font-bold text-gray-500 leading-relaxed">
+                Đừng phân vân nữa! Hãy để <span className="text-yellow-600 font-extrabold">tín hiệu vũ trụ</span> lo cho bạn hôm nay. Chỉ cần một cú gạt cần, combo ngon đỉnh sẽ xuất hiện ngay lập tức! 🎰🚀
+              </p>
+              <div className="flex items-center space-x-2 text-[10px] font-black text-green-600 uppercase tracking-widest">
+                <span>Quay ngay thôi nào</span>
+                <span className="animate-bounce text-base">👉</span>
+              </div>
+            </div>
+
+            {/* Jackpot Slot Machine Card */}
+            <div className="w-full max-w-sm flex-shrink-0">
+              <JackpotCard outOfStockSlugs={outOfStockFruitSlugs} />
+            </div>
+
           </div>
         </div>
       </section>
