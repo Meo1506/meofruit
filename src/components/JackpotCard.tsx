@@ -82,16 +82,16 @@ function mapResult(reels: number[]): { product: Product; customFruits?: string[]
     return { product: mk(f.slug, `${f.name} cắt sẵn`, f.img, "Hộp Nguyên Bản") };
   }
   if (unique.length === 5)
-    return { product: mk("hop-ngu-sac", "Hộp Ngũ Sắc", FRUITS[0].img) };
+    return { product: mk("hop-ngu-sac", "Hộp Ngũ Sắc", "https://images.unsplash.com/photo-1610832958506-aa56368176cf?q=80&w=800&auto=format&fit=crop") };
   if (unique.length === 2 && has("Dưa hấu", "Quýt"))
-    return { product: mk("hop-giai-nhiet", "Hộp Giải Nhiệt", FRUITS[3].img) };
+    return { product: mk("hop-giai-nhiet", "Hộp Giải Nhiệt", "https://images.unsplash.com/photo-1587049352846-4a222e784d38?q=80&w=800&auto=format&fit=crop") };
   if (unique.length === 3 && has("Ổi", "Mận", "Xoài"))
-    return { product: mk("hop-gion-tan", "Hộp Giòn Tan", FRUITS[1].img) };
+    return { product: mk("hop-gion-tan", "Hộp Giòn Tan", "https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?q=80&w=800&auto=format&fit=crop") };
   if (unique.length === 2)
-    return { product: mk("hop-2-vi-tuy-y", `Hộp ${unique.join(" & ")}`, FRUITS[0].img) };
+    return { product: mk("hop-2-vi-tuy-y", `Hộp ${unique.join(" & ")}`, "https://images.unsplash.com/photo-1546548970-71785318a17b?q=80&w=800&auto=format&fit=crop") };
 
   return {
-    product: { ...mk("hop-tu-chon-mix", `Hộp Mix ${unique.join(" + ")}`, FRUITS[0].img, "Hộp Tự Chọn"), product_type: "custom_mix" },
+    product: { ...mk("hop-tu-chon-mix", `Hộp Mix ${unique.join(" + ")}`, "https://images.unsplash.com/photo-1619566636858-adf3ef46400b?q=80&w=800&auto=format&fit=crop", "Hộp Tự Chọn"), product_type: "custom_mix" },
     customFruits: unique,
   };
 }
