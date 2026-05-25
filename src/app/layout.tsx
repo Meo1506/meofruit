@@ -22,7 +22,9 @@ const geistMono = Geist_Mono({
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
   return {
-    title: `${settings.webName} — Trái cây tươi cắt sẵn`,
+    // webName đã có tagline rồi (vd. "Meo Fruzi – Trái cây tươi mê ly"), không cần
+    // append thêm để tránh title bị lặp.
+    title: settings.webName,
     description: `Chuyên cung cấp trái cây tươi cắt sẵn, đóng hộp tiện lợi. ${settings.shipping.policy}.`,
   };
 }

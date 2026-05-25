@@ -48,7 +48,7 @@ export interface SiteSettings {
 }
 
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
-  webName: "Meo Fruit",
+  webName: "Meo Fruzi – Trái cây tươi mê ly",
   ownerName: "Nam Nguyễn",
   bankAccount: {
     number: "9916297232",
