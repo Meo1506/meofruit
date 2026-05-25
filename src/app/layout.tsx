@@ -21,11 +21,31 @@ const geistMono = Geist_Mono({
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
+  const description = `Chuyên cung cấp trái cây tươi cắt sẵn, đóng hộp tiện lợi. ${settings.shipping.policy}.`;
+  const heroImage = "/og-image.jpg";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
   return {
     // webName đã có tagline rồi (vd. "Meo Fruzi – Trái cây tươi mê ly"), không cần
     // append thêm để tránh title bị lặp.
+    metadataBase: new URL(siteUrl),
     title: settings.webName,
-    description: `Chuyên cung cấp trái cây tươi cắt sẵn, đóng hộp tiện lợi. ${settings.shipping.policy}.`,
+    description,
+    openGraph: {
+      title: settings.webName,
+      description,
+      url: "/",
+      siteName: settings.webName,
+      locale: "vi_VN",
+      type: "website",
+      images: heroImage ? [{ url: heroImage, width: 1200, height: 630, alt: settings.webName }] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: settings.webName,
+      description,
+      images: heroImage ? [heroImage] : [],
+    },
   };
 }
 
