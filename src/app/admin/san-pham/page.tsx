@@ -62,7 +62,7 @@ export default function AdminProducts() {
           .in('id', selectedIds);
         if (error) throw error;
         alert(`Đã cập nhật giá cho ${selectedIds.length} sản phẩm thành công!`);
-        fetchProducts();
+        setProducts(prev => prev.map(p => selectedIds.includes(p.id!) ? { ...p, ...updateData } : p));
       } else {
         setProducts(products.map(p => selectedIds.includes(p.id!) ? { ...p, ...updateData } : p));
         alert(`Đã cập nhật giá cho ${selectedIds.length} sản phẩm (Chế độ Demo)`);
@@ -184,8 +184,7 @@ export default function AdminProducts() {
       if (isSupabaseConfigured()) {
         await autoSeedIfEmpty();
       }
-      fetchProducts();
-      fetchCategories();
+      await Promise.all([fetchProducts(), fetchCategories()]);
     }
     init();
 
@@ -196,7 +195,7 @@ export default function AdminProducts() {
           "postgres_changes",
           { event: "*", schema: "public", table: "products" },
           () => {
-            fetchProducts();
+            fetchProducts(true);
           }
         )
         .on(
@@ -214,9 +213,9 @@ export default function AdminProducts() {
     }
   }, []);
 
-  async function fetchProducts() {
+  async function fetchProducts(silent = false) {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       if (isSupabaseConfigured()) {
         const { data, error } = await supabase
           .from('products')
@@ -258,9 +257,13 @@ export default function AdminProducts() {
     if (!newCatName.trim()) return;
     try {
       if (isSupabaseConfigured()) {
-        const { error } = await supabase.from('categories').insert([{ name: newCatName, show_on_storefront: true }]);
+        const { data: newCat, error } = await supabase
+          .from('categories')
+          .insert([{ name: newCatName, show_on_storefront: true }])
+          .select()
+          .single();
         if (error) throw error;
-        await fetchCategories();
+        setCategories(prev => [...prev, newCat].sort((a, b) => a.name.localeCompare(b.name)));
       } else {
         setCategories(prev => [...prev, { id: Math.random().toString(), name: newCatName }]);
       }
@@ -277,7 +280,7 @@ export default function AdminProducts() {
       if (isSupabaseConfigured()) {
         const { error } = await supabase.from('categories').delete().eq('id', id);
         if (error) throw error;
-        await fetchCategories();
+        setCategories(prev => prev.filter(c => c.id !== id));
       } else {
         setCategories(prev => prev.filter(c => c.id !== id));
       }
@@ -341,13 +344,18 @@ export default function AdminProducts() {
 
       if (isSupabaseConfigured()) {
         if (editingProduct?.id && editingProduct.id.length > 5) {
-          const { error } = await supabase.from('products').update(productData).eq('id', editingProduct.id);
+          const { data: updated, error } = await supabase
+            .from('products').update(productData).eq('id', editingProduct.id)
+            .select().single();
           if (error) throw error;
+          setProducts(prev => prev.map(p => p.id === updated.id ? updated : p));
         } else {
-          const { error } = await supabase.from('products').insert([productData]);
+          const { data: inserted, error } = await supabase
+            .from('products').insert([productData])
+            .select().single();
           if (error) throw error;
+          setProducts(prev => [inserted, ...prev]);
         }
-        fetchProducts();
       } else {
         if (editingProduct) {
           setProducts(products.map(p => p.id === editingProduct.id ? { ...p, ...productData } : p));
@@ -371,8 +379,9 @@ export default function AdminProducts() {
     if (!confirm(`Bạn có chắc chắn muốn xóa sản phẩm này?`)) return;
     try {
       if (isSupabaseConfigured() && id.length > 5) {
-        await supabase.from('products').delete().eq('id', id);
-        fetchProducts();
+        const { error } = await supabase.from('products').delete().eq('id', id);
+        if (error) throw error;
+        setProducts(prev => prev.filter(p => p.id !== id));
       } else {
         setProducts(products.filter(p => p.id !== id));
         alert("Đã xóa thành công (Chế độ Demo)");

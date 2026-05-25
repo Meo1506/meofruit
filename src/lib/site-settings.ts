@@ -55,6 +55,7 @@ export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
         instagram: data.social_instagram || "",
         youtube: data.social_youtube || "",
         zalo: data.social_zalo || "",
+        social_zalo_group: data.social_zalo_group || "",
       },
       shipping: {
         policy: data.shipping_policy || DEFAULT_SITE_SETTINGS.shipping.policy,

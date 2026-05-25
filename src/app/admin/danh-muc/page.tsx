@@ -20,7 +20,7 @@ export default function AdminCategories() {
           "postgres_changes",
           { event: "*", schema: "public", table: "categories" },
           () => {
-            fetchCategories();
+            fetchCategories(true);
           }
         )
         .subscribe();
@@ -31,14 +31,14 @@ export default function AdminCategories() {
     }
   }, []);
 
-  async function fetchCategories() {
+  async function fetchCategories(silent = false) {
     const demoData = [
       { id: '1', name: 'Trái cây', show_on_storefront: true },
       { id: '2', name: 'Nước ép', show_on_storefront: false }
     ];
 
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       if (isSupabaseConfigured()) {
         const { data, error } = await supabase
           .from('categories')
@@ -66,7 +66,7 @@ export default function AdminCategories() {
           .update({ show_on_storefront: !currentStatus })
           .eq('id', id);
         if (error) throw error;
-        fetchCategories();
+        setCategories(prev => prev.map(c => c.id === id ? { ...c, show_on_storefront: !currentStatus } : c));
       } else {
         setCategories(categories.map(c => c.id === id ? { ...c, show_on_storefront: !currentStatus } : c));
       }
@@ -82,11 +82,13 @@ export default function AdminCategories() {
     setIsSaving(true);
     try {
       if (isSupabaseConfigured()) {
-        const { error } = await supabase
+        const { data: newCat, error } = await supabase
           .from('categories')
-          .insert([{ name: newCatName, show_on_storefront: true }]);
+          .insert([{ name: newCatName, show_on_storefront: true }])
+          .select()
+          .single();
         if (error) throw error;
-        fetchCategories();
+        setCategories(prev => [...prev, newCat].sort((a, b) => a.name.localeCompare(b.name)));
       } else {
         setCategories(prev => [...prev, { id: Math.random().toString(), name: newCatName, show_on_storefront: true }]);
       }
@@ -105,7 +107,7 @@ export default function AdminCategories() {
       if (isSupabaseConfigured()) {
         const { error } = await supabase.from('categories').delete().eq('id', id);
         if (error) throw error;
-        fetchCategories();
+        setCategories(prev => prev.filter(c => c.id !== id));
       } else {
         setCategories(prev => prev.filter(c => c.id !== id));
       }

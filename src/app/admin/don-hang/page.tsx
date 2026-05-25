@@ -5,7 +5,7 @@ import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 const formatVND = (n: number) => (n ?? 0).toLocaleString("vi-VN") + "₫";
 const formatDate = (iso: string) => {
-  try { return new Date(iso).toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }); }
+  try { return new Date(iso).toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" }); }
   catch { return iso; }
 };
 
@@ -289,7 +289,7 @@ export default function AdminOrders() {
                               </div>
                            </td>
                            <td className="px-6 py-4 text-gray-500 font-medium">
-                              {new Date(order.created_at).toLocaleDateString('vi-VN')}
+                              {formatDate(order.created_at)}
                            </td>
                            <td className="px-6 py-4 font-black text-red-600">
                               {order.total_price.toLocaleString('vi-VN')}₫

@@ -119,8 +119,8 @@ export default function Home() {
             Hộp 750ml · Cắt sẵn · Tươi mỗi ngày
           </span>
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-black mb-5 tracking-tight leading-tight">
-            Trái Cây{" "}
-            <span className="text-green-400 italic font-medium">Cắt Sẵn</span>
+            Trái cây{" "}
+            <span className="text-green-400 italic font-medium">tươi mê ly</span>
           </h1>
           <p className="text-base md:text-lg text-gray-200 mb-8 max-w-xl mx-auto leading-relaxed font-medium">
             Freeship hỏa tốc bán kính 3km · Linh Xuân, Thủ Đức

@@ -39,6 +39,8 @@ export interface SiteSettings {
     youtube: string;
     /** Số điện thoại Zalo (digits only). FE sẽ build link https://zalo.me/<phone>. */
     zalo: string;
+    /** URL đầy đủ nhóm Zalo. Ví dụ: https://zalo.me/g/abc123 */
+    social_zalo_group?: string;
   };
   shipping: {
     policy: string;
@@ -65,7 +67,8 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
     facebook: "https://www.facebook.com/share/1cZCV3TkVJ/?mibextid=wwXIfr",
     instagram: "",
     youtube: "",
-    zalo: ""
+    zalo: "",
+    social_zalo_group: ""
   },
   shipping: {
     policy: "Free ship bán kính 3km"

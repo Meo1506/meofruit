@@ -26,6 +26,7 @@ export default function AdminSettings() {
       ["Facebook", config.social.facebook],
       ["Instagram", config.social.instagram],
       ["YouTube", config.social.youtube],
+      ["Link nhóm Zalo", config.social.social_zalo_group || ""],
     ];
     const invalid = urlFields.find(([, v]) => !isValidUrl(v));
     if (invalid) {
@@ -57,6 +58,7 @@ export default function AdminSettings() {
             social_instagram: config.social.instagram,
             social_youtube: config.social.youtube,
             social_zalo: config.social.zalo,
+            social_zalo_group: config.social.social_zalo_group || "",
             shipping_policy: config.shipping.policy,
             hero_images: config.heroImages,
             show_categories_section: config.showCategoriesSection,
@@ -174,6 +176,18 @@ export default function AdminSettings() {
                        className="w-full px-5 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-green-500 font-medium"
                     />
                     <p className="text-[10px] font-bold text-gray-400 mt-1">Chỉ nhập số. FE sẽ tự build link zalo.me/&lt;số&gt; khi user bấm.</p>
+                 </div>
+                 <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Link nhóm Zalo (URL đầy đủ)</label>
+                    <input
+                       type="url"
+                       inputMode="url"
+                       placeholder="https://zalo.me/g/abc123"
+                       value={config.social.social_zalo_group || ""}
+                       onChange={(e) => setConfig({...config, social: {...config.social, social_zalo_group: e.target.value}})}
+                       className={`w-full px-5 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 font-medium ${isValidUrl(config.social.social_zalo_group || "") ? 'focus:ring-green-500' : 'ring-2 ring-red-400'}`}
+                    />
+                    <p className="text-[10px] font-bold text-gray-400 mt-1">Nhập URL đầy đủ bắt đầu bằng https://</p>
                  </div>
               </div>
            </div>

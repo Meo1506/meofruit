@@ -38,6 +38,18 @@ function ZaloIcon({ size }: { size: number }) {
   );
 }
 
+function ZaloGroupIcon({ size }: { size: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12.5 2C6.7 2 2 6.1 2 11.2c0 2.9 1.5 5.5 3.9 7.1l-.7 2.6c-.1.4.3.7.6.5l2.9-1.7c1.2.4 2.5.6 3.8.6 5.8 0 10.5-4.1 10.5-9.2S18.3 2 12.5 2z" />
+      <circle cx="9" cy="9.5" r="1.5" fill="white" />
+      <circle cx="16" cy="9.5" r="1.5" fill="white" />
+      <path fill="white" d="M5.5 13.5c0-1.5 1.7-2.5 3.5-2.5s3.5 1 3.5 2.5H5.5z" />
+      <path fill="white" d="M12.5 13.5c0-1.5 1.7-2.5 3.5-2.5s3.5 1 3.5 2.5h-7z" />
+    </svg>
+  );
+}
+
 interface SocialItem {
   url: string;
   label: string;
@@ -51,6 +63,8 @@ export default function FloatingSocialIcons() {
   const [open, setOpen] = useState(false);
 
   if (pathname?.startsWith("/admin")) return null;
+
+  const zaloGroupUrl = settings.social.social_zalo_group?.trim() || "";
 
   const items: SocialItem[] = [
     {
@@ -79,7 +93,7 @@ export default function FloatingSocialIcons() {
     },
   ].filter((it) => it.url && it.url.trim().length > 0);
 
-  if (items.length === 0) return null;
+  if (items.length === 0 && !zaloGroupUrl) return null;
 
   return (
     <div className="fixed bottom-24 right-4 sm:right-6 z-[80] flex flex-col items-end gap-3">
@@ -102,6 +116,18 @@ export default function FloatingSocialIcons() {
           </a>
         ))}
       </div>
+      {zaloGroupUrl && (
+        <a
+          href={zaloGroupUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Chat nhóm Zalo"
+          title="Chat nhóm Zalo"
+          className={`${open ? "flex" : "hidden"} sm:flex w-12 h-12 sm:w-11 sm:h-11 items-center justify-center rounded-full text-white shadow-2xl shadow-gray-900/30 active:scale-95 transition-all duration-200 bg-[#0068FF] hover:bg-[#0052cc]`}
+        >
+          <ZaloGroupIcon size={20} />
+        </a>
+      )}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
