@@ -23,7 +23,12 @@ export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
   const description = `Chuyên cung cấp trái cây tươi cắt sẵn, đóng hộp tiện lợi. ${settings.shipping.policy}.`;
   const heroImage = "/og-image.jpg";
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  // Ưu tiên: custom domain (env tự set) → Vercel prod URL stable → Vercel deployment URL → localhost.
+  // VERCEL_PROJECT_PRODUCTION_URL ổn định qua các deploy; VERCEL_URL thay đổi mỗi deployment.
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : null) ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
   return {
     // webName đã có tagline rồi (vd. "Meo Fruzi – Trái cây tươi mê ly"), không cần
