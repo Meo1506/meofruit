@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import AdminLayout from "@/components/AdminLayout";
 import HomeBanner from "@/components/HomeBanner";
 import { supabase, isSupabaseConfigured, getErrorMessage } from "@/lib/supabase";
 import { uploadBannerImage, validateImageFile } from "@/lib/uploadImage";
@@ -374,7 +373,6 @@ export default function AdminBannerPage() {
   }, [editor]);
 
   return (
-    <AdminLayout>
       <div className="max-w-6xl space-y-8 pb-20">
         <div className="flex items-center justify-between">
           <div>
@@ -732,7 +730,6 @@ export default function AdminBannerPage() {
           </div>
         )}
       </div>
-    </AdminLayout>
   );
 }
 

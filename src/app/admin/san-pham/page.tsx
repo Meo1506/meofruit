@@ -1,5 +1,4 @@
 "use client";
-import AdminLayout from "@/components/AdminLayout";
 import Link from "next/link";
 import { Plus, Search, Edit2, Trash2, Loader2, X, Save, Image as ImageIcon, MinusCircle, Check, Upload, AlertTriangle } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
@@ -388,7 +387,7 @@ export default function AdminProducts() {
   );
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6 pb-20">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
            <div>
@@ -880,6 +879,6 @@ export default function AdminProducts() {
           </div>
         </div>
       )}
-    </AdminLayout>
+    </>
   );
 }

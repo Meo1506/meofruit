@@ -1,5 +1,4 @@
 "use client";
-import AdminLayout from "@/components/AdminLayout";
 import { Search, Eye, CheckCircle, Clock, Truck, XCircle, CreditCard, Loader2, X, User, Phone, MapPin, StickyNote } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
@@ -160,7 +159,7 @@ export default function AdminOrders() {
   );
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6 pb-20">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Quản lý đơn hàng</h2>
@@ -437,6 +436,6 @@ export default function AdminOrders() {
           </div>
         </div>
       )}
-    </AdminLayout>
+    </>
   );
 }

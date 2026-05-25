@@ -1,5 +1,4 @@
 "use client";
-import AdminLayout from "@/components/AdminLayout";
 import { Save, Building2, Phone, MapPin, CreditCard, User, Share2, Loader2, X } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -77,7 +76,6 @@ export default function AdminSettings() {
   };
 
   return (
-    <AdminLayout>
       <div className="max-w-4xl space-y-8 pb-20">
         <div>
           <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Cài đặt hệ thống</h2>
@@ -311,6 +309,5 @@ export default function AdminSettings() {
            </button>
         </div>
       </div>
-    </AdminLayout>
   );
 }

@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect } from "react";
-import AdminLayout from "@/components/AdminLayout";
 import { ShoppingBag, Users, TrendingUp, CreditCard } from "lucide-react";
 import Link from "next/link";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
@@ -82,8 +81,7 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <AdminLayout>
-      <div className="space-y-8">
+    <div className="space-y-8">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {statCards.map((stat) => (
@@ -137,7 +135,6 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
-      </div>
-    </AdminLayout>
+    </div>
   );
 }

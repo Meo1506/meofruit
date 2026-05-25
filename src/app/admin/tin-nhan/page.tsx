@@ -1,5 +1,4 @@
 "use client";
-import AdminLayout from "@/components/AdminLayout";
 import { Loader2, Mail, Phone, MessageSquare, Check, Trash2, AlertTriangle, RefreshCw } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
@@ -68,7 +67,6 @@ export default function AdminMessages() {
   const newCount = messages.filter(m => m.status === "new").length;
 
   return (
-    <AdminLayout>
       <div className="space-y-6 max-w-4xl">
         <div className="flex justify-between items-center">
           <div>
@@ -142,6 +140,5 @@ export default function AdminMessages() {
           </div>
         )}
       </div>
-    </AdminLayout>
   );
 }

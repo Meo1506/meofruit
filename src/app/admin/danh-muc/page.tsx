@@ -1,5 +1,4 @@
 "use client";
-import AdminLayout from "@/components/AdminLayout";
 import { Plus, Trash2, Loader2, Save, X, Eye, EyeOff } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
@@ -116,7 +115,7 @@ export default function AdminCategories() {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="max-w-2xl space-y-6">
         <div className="flex justify-between items-center">
           <div>
@@ -205,6 +204,6 @@ export default function AdminCategories() {
           </div>
         </div>
       )}
-    </AdminLayout>
+    </>
   );
 }

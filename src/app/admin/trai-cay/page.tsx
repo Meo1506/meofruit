@@ -1,5 +1,4 @@
 "use client";
-import AdminLayout from "@/components/AdminLayout";
 import { useState, useEffect } from "react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import productsData from "@/data/products.json";
@@ -101,7 +100,6 @@ export default function FruitStockPage() {
   const outOfStockCount = FRUIT_DEFS.filter(f => (stockMap[f.slug] ?? 0) <= 0).length;
 
   return (
-    <AdminLayout>
       <div className="space-y-6 pb-20">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -265,6 +263,5 @@ export default function FruitStockPage() {
           </ul>
         </div>
       </div>
-    </AdminLayout>
   );
 }

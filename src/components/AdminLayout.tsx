@@ -37,31 +37,27 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       return;
     }
 
-    // Defense-in-depth: middleware đã chặn nhưng vẫn check lại ở client
-    // phòng trường hợp lệch session (vd. admin bị revoke giữa chừng).
+    // Defense-in-depth: proxy.ts (server) đã validate token + check is_admin rồi,
+    // ở client chỉ cần đọc session từ cache local (KHÔNG hit network như getUser()).
+    // Nếu session lệch / admin bị revoke giữa chừng → proxy server-side sẽ chặn ở
+    // request tiếp theo. Khỏi double network call mỗi lần navigate.
+    let cancelled = false;
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (cancelled) return;
+      if (!session?.user) {
         router.replace("/dang-nhap?next=" + encodeURIComponent(pathname));
         return;
       }
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("is_admin, role")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      const isAdminUser = profile?.is_admin === true || profile?.role === "admin";
-      if (!isAdminUser) {
-        router.replace("/?error=admin_required");
-        return;
-      }
-
-      setAdminEmail(user.email || null);
+      setAdminEmail(session.user.email || null);
       setIsAdmin(true);
       setIsVerifying(false);
     })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [router, pathname]);
 
   async function handleSignOut() {
@@ -69,14 +65,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     router.push("/");
   }
 
-  if (isVerifying) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 font-bold text-gray-400">
-        Đang xác thực quyền Admin...
-      </div>
-    );
-  }
-  if (!isAdmin) return null;
+  // Không block toàn màn hình nữa — sidebar render luôn, chỉ phần children skeleton.
+  // getSession() đọc cache local nên thường resolve trong 1 tick, gần như không thấy.
+  if (!isVerifying && !isAdmin) return null;
 
   const menuItems = [
     { name: "Tổng quan",   icon: LayoutDashboard, href: "/admin" },
@@ -175,7 +166,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         )}
 
         <div className="p-8">
-          {children}
+          {isVerifying ? (
+            <div className="space-y-6 animate-pulse">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={i} className="bg-white p-6 rounded-[2rem] border border-gray-100 h-24" />
+                ))}
+              </div>
+              <div className="bg-white rounded-[2rem] border border-gray-100 h-64" />
+            </div>
+          ) : (
+            children
+          )}
         </div>
       </main>
     </div>
