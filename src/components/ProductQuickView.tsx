@@ -79,7 +79,7 @@ export default function ProductQuickView({ product, onClose, outOfStockFruitName
   const handleAdd = (openSidebar: boolean) => {
     if (!canConfirm) return;
     addToCart(
-      { ...product, price: unitPrice, price_formatted: formatVND(unitPrice) },
+      product,
       isCustomMix ? 1 : quantity,
       !openSidebar,
       isCustomMix ? selectedFruits : undefined

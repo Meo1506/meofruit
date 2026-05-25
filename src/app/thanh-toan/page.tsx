@@ -8,7 +8,10 @@ import CopyableText from "@/components/CopyableText";
 import OrderSuccessModal from "@/components/OrderSuccessModal";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { getOrCreateGuestToken } from "@/lib/guestToken";
+import { addGuestOrder } from "@/lib/guestOrders";
+import { generateOrderCode } from "@/lib/orderCode";
 import { Loader2, AlertTriangle } from "lucide-react";
+import { getEffectivePrice } from "@/lib/price";
 
 export default function CheckoutPage() {
   const { cart, totalPrice, totalItems, clearCart } = useCart();
@@ -17,6 +20,7 @@ export default function CheckoutPage() {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
+    email: "",
     address: "",
     note: "",
     paymentMethod: "transfer"
@@ -27,6 +31,7 @@ export default function CheckoutPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [successItems, setSuccessItems] = useState<{ name: string; quantity: number; price: number }[]>([]);
   const [successTotal, setSuccessTotal] = useState(0);
+  const [successOrderCode, setSuccessOrderCode] = useState<string | null>(null);
 
   // Auto-fill form if user is logged in
   useEffect(() => {
@@ -50,16 +55,28 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
     setSubmitError(null);
 
+    const customerEmail = (user?.email || formData.email || "").trim();
+    if (!user && !customerEmail) {
+      setSubmitError("Vui lòng nhập email để có thể tra cứu đơn hàng sau này.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    const orderCode = generateOrderCode();
+    const createdAt = new Date().toISOString();
+
     const orderData = {
+      order_code: orderCode,
       customer_name: formData.name,
       customer_phone: formData.phone,
+      customer_email: customerEmail,
       customer_address: formData.address,
       customer_note: formData.note,
       total_price: totalPrice,
       payment_method: formData.paymentMethod,
       items: cart.map(item => ({
         name: item.name,
-        price: item.price,
+        price: getEffectivePrice(item),
         quantity: item.quantity,
         image_url: item.image_url
       })),
@@ -85,8 +102,18 @@ export default function CheckoutPage() {
         }
       }
 
-      setSuccessItems(cart.map(item => ({ name: item.name, quantity: item.quantity, price: item.price })));
+      // Guest: ghi vào cookie để /don-cua-toi và /tra-cuu-don nhớ được
+      if (!user && customerEmail) {
+        addGuestOrder({
+          order_code: orderCode,
+          email: customerEmail,
+          created_at: createdAt,
+        });
+      }
+
+      setSuccessItems(cart.map(item => ({ name: item.name, quantity: item.quantity, price: getEffectivePrice(item) })));
       setSuccessTotal(totalPrice);
+      setSuccessOrderCode(orderCode);
       clearCart();
       setIsSuccess(true);
     } catch (err: any) {
@@ -154,11 +181,18 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Địa chỉ Email</label>
-                    <input 
-                      type="email" 
-                      value={user?.email || ""}
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">
+                      Địa chỉ Email
+                      {!user && <span className="text-red-500 ml-1">*</span>}
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      required={!user}
+                      placeholder={user ? "" : "Để tra cứu đơn sau này"}
+                      value={user?.email || formData.email}
                       readOnly={!!user}
+                      onChange={user ? undefined : handleInputChange}
                       className={`w-full px-6 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-green-500 transition-all font-bold ${user ? 'text-gray-400 cursor-not-allowed' : ''}`}
                     />
                   </div>
@@ -207,11 +241,25 @@ export default function CheckoutPage() {
                     <p className="text-[10px] text-gray-500 font-bold mt-0.5">Thanh toán qua mã QR hoặc số tài khoản</p>
                   </div>
                 </label>
+                <label className={`flex items-center p-6 rounded-3xl border-2 cursor-pointer transition-all ${formData.paymentMethod === 'momo' ? 'border-pink-500 bg-pink-50' : 'border-gray-50 bg-gray-50 hover:bg-gray-100'}`}>
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="momo"
+                    checked={formData.paymentMethod === 'momo'}
+                    onChange={handleInputChange}
+                    className="w-5 h-5 text-pink-500 focus:ring-pink-500"
+                  />
+                  <div className="ml-5">
+                    <p className="font-black text-gray-900 uppercase text-xs tracking-wider">Chuyển khoản qua MoMo</p>
+                    <p className="text-[10px] text-gray-500 font-bold mt-0.5">Quét QR hoặc chuyển đến số MoMo của shop</p>
+                  </div>
+                </label>
                 <label className={`flex items-center p-6 rounded-3xl border-2 cursor-pointer transition-all ${formData.paymentMethod === 'cod' ? 'border-green-600 bg-green-50' : 'border-gray-50 bg-gray-50 hover:bg-gray-100'}`}>
-                  <input 
-                    type="radio" 
-                    name="paymentMethod" 
-                    value="cod" 
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="cod"
                     checked={formData.paymentMethod === 'cod'}
                     onChange={handleInputChange}
                     className="w-5 h-5 text-green-600 focus:ring-green-500"
@@ -224,15 +272,53 @@ export default function CheckoutPage() {
               </div>
 
               {formData.paymentMethod === 'transfer' && (
-                <div className="mt-8 p-8 bg-white border-2 border-dashed border-green-200 rounded-[2rem]">
-                  <p className="text-[9px] text-green-600 font-black uppercase tracking-[0.2em] mb-4 text-center">Thông tin tài khoản (Bấm để copy)</p>
-                  <div className="space-y-4 text-center max-w-xs mx-auto">
-                    <CopyableText text={settings.bankAccount.owner} label="Chủ tài khoản" className="text-sm font-black text-gray-900 justify-center" />
-                    <CopyableText text={settings.bankAccount.number} label="Số tài khoản" className="text-3xl font-black text-green-600 justify-center tracking-tighter" />
-                    <p className="font-black text-gray-700 text-xs uppercase tracking-widest">{settings.bankAccount.bank}</p>
+                <div className="mt-8 p-6 sm:p-8 bg-white border-2 border-dashed border-green-200 rounded-[2rem]">
+                  <p className="text-[9px] text-green-600 font-black uppercase tracking-[0.2em] mb-6 text-center">Quét QR hoặc chuyển khoản thủ công</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-center">
+                    <div className="flex justify-center">
+                      <div className="w-full max-w-[260px] aspect-square bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                        <img
+                          src={`https://img.vietqr.io/image/TCB-${settings.bankAccount.number}-compact2.png?amount=${totalPrice}&addInfo=${encodeURIComponent(formData.phone || "Thanh toan don hang")}&accountName=${encodeURIComponent(settings.bankAccount.owner)}`}
+                          alt="QR chuyển khoản Techcombank"
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-4 text-center md:text-left">
+                      <CopyableText text={settings.bankAccount.owner} label="Chủ tài khoản" className="text-sm font-black text-gray-900 justify-center md:justify-start" />
+                      <CopyableText text={settings.bankAccount.number} label="Số tài khoản" className="text-2xl sm:text-3xl font-black text-green-600 justify-center md:justify-start tracking-tighter" />
+                      <p className="font-black text-gray-700 text-xs uppercase tracking-widest">{settings.bankAccount.bank}</p>
+                      <div className="pt-4 border-t border-gray-100">
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Nội dung: <span className="text-gray-900">{formData.phone || "SĐT CỦA BẠN"}</span></p>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Số tiền: <span className="text-red-600">{totalPrice.toLocaleString('vi-VN')}₫</span></p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="mt-6 pt-6 border-t border-gray-100 text-center">
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Nội dung: <span className="text-gray-900">{formData.phone || "SĐT CỦA BẠN"}</span></p>
+                </div>
+              )}
+
+              {formData.paymentMethod === 'momo' && (
+                <div className="mt-8 p-6 sm:p-8 bg-white border-2 border-dashed border-pink-200 rounded-[2rem]">
+                  <p className="text-[9px] text-pink-600 font-black uppercase tracking-[0.2em] mb-6 text-center">Quét QR hoặc chuyển MoMo đến số dưới</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-center">
+                    <div className="flex justify-center">
+                      <div className="w-full max-w-[260px] aspect-square bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex items-center justify-center p-4">
+                        <img
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=8&data=${encodeURIComponent(`https://nhantien.momo.vn/${settings.contact.phone}`)}`}
+                          alt="QR MoMo"
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-4 text-center md:text-left">
+                      <CopyableText text={settings.bankAccount.owner} label="Chủ tài khoản" className="text-sm font-black text-gray-900 justify-center md:justify-start" />
+                      <CopyableText text={settings.contact.phone} label="Số MoMo" className="text-2xl sm:text-3xl font-black text-pink-600 justify-center md:justify-start tracking-tighter" />
+                      <p className="font-black text-gray-700 text-xs uppercase tracking-widest">Ví MoMo</p>
+                      <div className="pt-4 border-t border-gray-100">
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Nội dung: <span className="text-gray-900">{formData.phone || "SĐT CỦA BẠN"}</span></p>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Số tiền: <span className="text-red-600">{totalPrice.toLocaleString('vi-VN')}₫</span></p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -256,7 +342,7 @@ export default function CheckoutPage() {
                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">SL: {item.quantity} hộp</p>
                       </div>
                     </div>
-                    <p className="text-sm font-black text-gray-900">{(item.price * item.quantity).toLocaleString('vi-VN')}₫</p>
+                    <p className="text-sm font-black text-gray-900">{(getEffectivePrice(item) * item.quantity).toLocaleString('vi-VN')}₫</p>
                   </div>
                 ))}
               </div>
@@ -309,6 +395,7 @@ export default function CheckoutPage() {
           totalPrice={successTotal}
           items={successItems}
           isLoggedIn={!!user}
+          orderCode={successOrderCode}
         />
       )}
     </div>

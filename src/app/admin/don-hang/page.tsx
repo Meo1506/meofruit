@@ -424,7 +424,7 @@ export default function AdminOrders() {
                   <CreditCard size={14} className="mr-3 mt-0.5 text-gray-400 flex-shrink-0" />
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-0.5">Phương thức thanh toán</p>
-                    <p className="font-bold text-gray-900">{selectedOrder.payment_method === "cod" ? "Thanh toán khi nhận hàng (COD)" : "Chuyển khoản ngân hàng"}</p>
+                    <p className="font-bold text-gray-900">{selectedOrder.payment_method === "cod" ? "Thanh toán khi nhận hàng (COD)" : selectedOrder.payment_method === "momo" ? "Chuyển khoản qua MoMo" : "Chuyển khoản ngân hàng"}</p>
                   </div>
                 </div>
               </div>

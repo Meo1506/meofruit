@@ -11,12 +11,15 @@ const FRUIT_DEFS = [
   { slug: "man-cat-san",     name: "Mận",      emoji: "🍑", combos: ["Hộp Ngũ Sắc", "Hộp Giòn Tan"] },
   { slug: "dua-hau-cat-san", name: "Dưa hấu", emoji: "🍉", combos: ["Hộp Ngũ Sắc", "Hộp Giải Nhiệt"] },
   { slug: "quyt-boc-san",    name: "Quýt",    emoji: "🍊", combos: ["Hộp Ngũ Sắc", "Hộp Giải Nhiệt"] },
+  { slug: "nho-cat-san",     name: "Nho",     emoji: "🍇", combos: ["Hộp Thanh Mát"] },
+  { slug: "buoi-tach-mui",   name: "Bưởi",    emoji: "🍊", combos: ["Hộp Thanh Mát"] },
 ];
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
 export default function FruitStockPage() {
-  const [stockMap, setStockMap]     = useState<Record<string, boolean>>({});
+  // stockMap: slug → số kg còn lại. 0 = hết hàng.
+  const [stockMap, setStockMap]     = useState<Record<string, number>>({});
   const [loading, setLoading]       = useState(true);
   const [saveStatus, setSaveStatus] = useState<Record<string, SaveStatus>>({});
 
@@ -48,19 +51,24 @@ export default function FruitStockPage() {
       if (isSupabaseConfigured()) {
         const { data, error } = await supabase
           .from("products")
-          .select("slug, is_in_stock")
+          .select("slug, stock_kg")
           .in("slug", slugs);
         if (error) throw error;
-        const map: Record<string, boolean> = {};
-        (data || []).forEach((p: { slug: string; is_in_stock: boolean }) => {
-          map[p.slug] = p.is_in_stock !== false;
+        const map: Record<string, number> = {};
+        (data || []).forEach((p: { slug: string; stock_kg: number | null }) => {
+          map[p.slug] = Number(p.stock_kg ?? 0);
         });
         setStockMap(map);
       } else {
-        const map: Record<string, boolean> = {};
-        (productsData as { slug: string; is_in_stock?: boolean }[])
+        const map: Record<string, number> = {};
+        (productsData as { slug: string; stock_kg?: number; is_in_stock?: boolean }[])
           .filter(p => slugs.includes(p.slug))
-          .forEach(p => { map[p.slug] = p.is_in_stock !== false; });
+          .forEach(p => {
+            // Fallback từ is_in_stock cũ nếu data demo chưa có stock_kg
+            map[p.slug] = typeof p.stock_kg === "number"
+              ? p.stock_kg
+              : (p.is_in_stock !== false ? 10 : 0);
+          });
         setStockMap(map);
       }
     } finally {
@@ -68,27 +76,29 @@ export default function FruitStockPage() {
     }
   }
 
-  async function toggle(slug: string, newValue: boolean) {
-    setStockMap(prev => ({ ...prev, [slug]: newValue }));
+  async function saveStockKg(slug: string, newKg: number) {
+    const safeKg = Math.max(0, Number(newKg) || 0);
+    const prevKg = stockMap[slug] ?? 0;
+    setStockMap(prev => ({ ...prev, [slug]: safeKg }));
     setSaveStatus(prev => ({ ...prev, [slug]: "saving" }));
     try {
       if (isSupabaseConfigured()) {
         const { error } = await supabase
           .from("products")
-          .update({ is_in_stock: newValue })
+          .update({ stock_kg: safeKg })
           .eq("slug", slug);
         if (error) throw error;
       }
       setSaveStatus(prev => ({ ...prev, [slug]: "saved" }));
       setTimeout(() => setSaveStatus(prev => ({ ...prev, [slug]: "idle" })), 2000);
     } catch {
-      setStockMap(prev => ({ ...prev, [slug]: !newValue }));
+      setStockMap(prev => ({ ...prev, [slug]: prevKg }));
       setSaveStatus(prev => ({ ...prev, [slug]: "error" }));
       setTimeout(() => setSaveStatus(prev => ({ ...prev, [slug]: "idle" })), 3000);
     }
   }
 
-  const outOfStockCount = FRUIT_DEFS.filter(f => stockMap[f.slug] === false).length;
+  const outOfStockCount = FRUIT_DEFS.filter(f => (stockMap[f.slug] ?? 0) <= 0).length;
 
   return (
     <AdminLayout>
@@ -142,7 +152,8 @@ export default function FruitStockPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
             {FRUIT_DEFS.map(fruit => {
-              const inStock = stockMap[fruit.slug] !== false;
+              const kg      = stockMap[fruit.slug] ?? 0;
+              const inStock = kg > 0;
               const status  = saveStatus[fruit.slug] ?? "idle";
 
               return (
@@ -160,23 +171,46 @@ export default function FruitStockPage() {
                     <p className="font-black text-gray-900">{fruit.name}</p>
                   </div>
 
-                  {/* Toggle row */}
-                  <div className="flex items-center justify-between mb-3">
-                    <span className={`text-[11px] font-black uppercase tracking-widest ${inStock ? "text-green-600" : "text-red-500"}`}>
-                      {inStock ? "Còn hàng" : "Hết hàng"}
-                    </span>
-                    <button
-                      onClick={() => toggle(fruit.slug, !inStock)}
-                      disabled={status === "saving"}
-                      aria-label={`Toggle ${fruit.name}`}
-                      className={`
-                        relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-200 flex-shrink-0
-                        ${inStock ? "bg-green-500" : "bg-gray-300"}
-                        ${status === "saving" ? "opacity-60 cursor-wait" : "cursor-pointer hover:opacity-90"}
-                      `}
-                    >
-                      <span className={`inline-block h-5 w-5 rounded-full bg-white shadow transform transition-transform duration-200 ${inStock ? "translate-x-6" : "translate-x-1"}`} />
-                    </button>
+                  {/* Kg input row */}
+                  <div className="mb-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={`text-[11px] font-black uppercase tracking-widest ${inStock ? "text-green-600" : "text-red-500"}`}>
+                        {inStock ? "Còn hàng" : "Hết hàng"}
+                      </span>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">kg trong kho</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => saveStockKg(fruit.slug, Math.max(0, kg - 1))}
+                        disabled={status === "saving" || kg <= 0}
+                        className="w-8 h-9 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-black text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                      >−</button>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.5"
+                        value={kg}
+                        onChange={(e) => {
+                          const v = parseFloat(e.target.value);
+                          setStockMap(prev => ({ ...prev, [fruit.slug]: isNaN(v) ? 0 : Math.max(0, v) }));
+                        }}
+                        onBlur={(e) => {
+                          const v = parseFloat(e.target.value);
+                          saveStockKg(fruit.slug, isNaN(v) ? 0 : v);
+                        }}
+                        disabled={status === "saving"}
+                        className={`flex-1 h-9 px-2 text-center font-black text-sm rounded-lg border-2 transition-colors ${
+                          inStock ? "border-green-200 bg-green-50/50 text-green-700" : "border-red-200 bg-red-50 text-red-600"
+                        }`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => saveStockKg(fruit.slug, kg + 1)}
+                        disabled={status === "saving"}
+                        className="w-8 h-9 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-black text-sm disabled:opacity-40"
+                      >+</button>
+                    </div>
                   </div>
 
                   {/* Save indicator */}

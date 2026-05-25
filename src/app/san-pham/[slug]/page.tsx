@@ -9,6 +9,7 @@ import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { useSiteSettings } from "@/context/SettingsContext";
 import { useCart } from "@/context/CartContext";
 import { formatVND, getEffectivePrice, isOnSale, getDiscountPercent } from "@/lib/price";
+import SaleCountdown from "@/components/SaleCountdown";
 import { ShoppingCart, MessageCircle, Plus, Minus } from "lucide-react";
 
 export default function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -116,6 +117,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                 </>
               )}
             </div>
+            {isOnSale(product) && product.sale_until && (
+              <div className="-mt-4 mb-8">
+                <SaleCountdown
+                  saleUntil={product.sale_until}
+                  className="text-xs font-black text-red-600 uppercase tracking-widest bg-red-50 border border-red-100 px-3 py-1.5 rounded-full"
+                />
+              </div>
+            )}
 
             <p className="text-gray-600 leading-relaxed mb-8 text-lg">
               {product.description || `Sản phẩm trái cây tươi ngon ${product.name}, được tuyển chọn kỹ lưỡng từ những trang trại uy tín. Đảm bảo độ tươi, giòn và hàm lượng dinh dưỡng cao nhất cho gia đình bạn.`}
@@ -183,8 +192,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       onClick={() => {
-                        const ep = getEffectivePrice(product);
-                        addToCart({ ...product, price: ep, price_formatted: formatVND(ep) }, quantity, true);
+                        addToCart(product, quantity, true);
                       }}
                       className="py-4 bg-white border-2 border-green-600 text-green-600 font-black rounded-2xl uppercase tracking-widest text-xs hover:bg-green-50 transition-all flex items-center justify-center space-x-2"
                     >
@@ -193,8 +201,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                     </button>
                     <button
                       onClick={() => {
-                        const ep = getEffectivePrice(product);
-                        addToCart({ ...product, price: ep, price_formatted: formatVND(ep) }, quantity, false);
+                        addToCart(product, quantity, false);
                         router.push("/thanh-toan");
                       }}
                       className="py-4 bg-green-600 hover:bg-green-700 text-white font-black rounded-2xl uppercase tracking-widest text-xs shadow-lg shadow-green-200 transition-all"

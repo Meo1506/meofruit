@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { useSiteSettings } from "@/context/SettingsContext";
-import { User, ShoppingBag, Search, Menu, X, LogIn, LogOut, Package } from "lucide-react";
+import { User, ShoppingBag, Search, Menu, X, LogIn, LogOut, Package, ShieldCheck } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 import { useRouter, usePathname } from "next/navigation";
 
@@ -19,9 +19,11 @@ export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { totalItems, setIsCartOpen } = useCart();
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const settings = useSiteSettings();
   const router = useRouter();
+
+  const isAdmin = profile?.is_admin === true || profile?.role === "admin";
 
   // Trên các trang không phải trang chủ, hero không phủ navbar → luôn show opaque/chữ tối
   // để tránh chữ trắng trên nền sáng (vô hình).
@@ -61,6 +63,28 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Ctrl+Shift+/ → /admin (chỉ khi đang là admin & không gõ trong field nhập liệu)
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const handleKey = (e: KeyboardEvent) => {
+      if (!e.ctrlKey || !e.shiftKey || e.code !== "Slash") return;
+      if (pathname?.startsWith("/admin")) return;
+
+      const target = e.target as HTMLElement | null;
+      if (target) {
+        const tag = target.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || target.isContentEditable) return;
+      }
+
+      e.preventDefault();
+      router.push("/admin");
+    };
+
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [isAdmin, pathname, router]);
+
   const navLinks = [
     { name: "Trang chủ", href: "/" },
     { name: "Sản phẩm", href: "/san-pham" },
@@ -69,6 +93,9 @@ export default function Navbar() {
 
   // Final visibility state: Show if scrolled up OR hovered OR at the very top
   const showNavbar = isVisible || isHovered || !isScrolled;
+
+  // Trang /admin có layout + header riêng — ẩn navbar public để tránh đè z-index.
+  if (pathname?.startsWith("/admin")) return null;
 
   return (
     <>
@@ -123,6 +150,21 @@ export default function Navbar() {
             <button onClick={() => setIsSearchOpen(true)} aria-label="Tìm kiếm" className={`p-2 rounded-full transition-colors hidden sm:block ${useOpaqueStyle ? "text-gray-700 hover:bg-gray-100" : "text-white hover:bg-white/10"}`}>
               <Search size={20} />
             </button>
+
+            {isHomePage && isAdmin && (
+              <Link
+                href="/admin"
+                title="Quản trị (Ctrl+Shift+/)"
+                className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest transition-all ${
+                  useOpaqueStyle
+                    ? "bg-green-600 text-white hover:bg-green-700 shadow-sm"
+                    : "bg-white/15 text-white backdrop-blur-md border border-white/30 hover:bg-white/25"
+                }`}
+              >
+                <ShieldCheck size={14} />
+                <span>Admin</span>
+              </Link>
+            )}
 
             <NotificationBell opaque={useOpaqueStyle} />
 

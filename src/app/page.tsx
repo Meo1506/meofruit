@@ -4,6 +4,7 @@ import productsData from "@/data/products.json";
 import { Product } from "@/types";
 import ProductCard from "@/components/ProductCard";
 import SectionNav from "@/components/SectionNav";
+import HomeBanner from "@/components/HomeBanner";
 import { supabase, isSupabaseConfigured, autoSeedIfEmpty } from "@/lib/supabase";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -65,7 +66,7 @@ export default function Home() {
   }, []);
 
   // Individual fruit product slugs — used to derive combo availability
-  const FRUIT_SLUGS = ["xoai-cat-san", "oi-cat-san", "man-cat-san", "dua-hau-cat-san", "quyt-boc-san"];
+  const FRUIT_SLUGS = ["xoai-cat-san", "oi-cat-san", "man-cat-san", "dua-hau-cat-san", "quyt-boc-san", "nho-cat-san", "buoi-tach-mui"];
 
   const outOfStockFruitSlugs = products
     .filter(p => FRUIT_SLUGS.includes(p.slug || p.id || "") && p.is_in_stock === false)
@@ -78,6 +79,8 @@ export default function Home() {
     "man-cat-san": "Mận",
     "dua-hau-cat-san": "Dưa hấu",
     "quyt-boc-san": "Quýt",
+    "nho-cat-san": "Nho",
+    "buoi-tach-mui": "Bưởi",
   };
   const outOfStockFruitNames = outOfStockFruitSlugs.map(s => SLUG_TO_NAME[s]).filter(Boolean);
 
@@ -95,6 +98,9 @@ export default function Home() {
 
   return (
     <div className="text-gray-900">
+      {/* Banner trang chủ (admin tự quản lý) */}
+      <HomeBanner />
+
       {/* Hero */}
       <section className="relative h-[88vh] min-h-[500px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
@@ -168,60 +174,46 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Jackpot Section */}
-      <section className="py-12 bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 border-y border-gray-100/80 overflow-hidden">
-        <div className="container mx-auto px-4 max-w-5xl">
-          {/* Centered relative wrapper for Jackpot wheel */}
-          <div className="relative w-full max-w-md mx-auto min-h-[380px] flex items-center justify-center">
-            
-            {/* Desktop-only Universe Signal Promo Text - Positioned exactly to the left of the card boundary */}
-            <div className="hidden lg:flex absolute right-[calc(100%+48px)] top-1/2 -translate-y-1/2 flex-col items-start space-y-4 w-[280px] lg:w-[320px] text-left animate-in fade-in slide-in-from-left-6 duration-700">
-              <span className="inline-block px-3 py-1 rounded-full bg-yellow-400/20 text-yellow-700 text-[10px] font-black uppercase tracking-wider animate-pulse">
-                ✨ Tín hiệu vũ trụ
-              </span>
-              <h2 className="text-3xl lg:text-4xl font-black text-gray-950 tracking-tight leading-none uppercase">
-                Không biết <br />
-                <span className="bg-gradient-to-r from-green-600 via-emerald-500 to-teal-600 bg-clip-text text-transparent italic font-medium">chọn gì?</span>
-              </h2>
-              
-              <style>{`
-                @keyframes point-right {
-                  0%, 100% { transform: translateX(0); }
-                  50% { transform: translateX(10px); }
-                }
-                .animate-point-right {
-                  animation: point-right 0.8s infinite ease-in-out;
-                }
-                @keyframes glow-pulse {
-                  0%, 100% { box-shadow: 0 0 5px rgba(34, 197, 94, 0.4); }
-                  50% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.8); }
-                }
-                .animate-glow-pulse {
-                  animation: glow-pulse 2s infinite ease-in-out;
-                }
-              `}</style>
-
-              <button
-                onClick={() => window.dispatchEvent(new CustomEvent("trigger-jackpot-spin"))}
-                disabled={jackpotPhase !== "idle"}
-                className="flex items-center space-x-3 bg-gradient-to-r from-green-600 to-emerald-500 text-white px-5 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg animate-glow-pulse transition-all select-none hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-80 disabled:cursor-not-allowed"
-              >
-                <span>{jackpotPhase === "spinning" ? "Đang quay..." : "Gạt cần ngay thôi"}</span>
-                <span className="animate-point-right text-lg leading-none">👉</span>
-              </button>
+      {/* Jackpot Section — đã ẩn tạm theo yêu cầu. Bỏ `false &&` để bật lại.
+          Bao gồm: wrapper section, promo text "Tín hiệu vũ trụ" + "Không biết chọn gì?",
+          nút "Gạt cần ngay thôi", và <JackpotCard />. */}
+      {false && (
+        <section className="py-12 bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 border-y border-gray-100/80 overflow-hidden">
+          <div className="container mx-auto px-4 max-w-5xl">
+            <div className="relative w-full max-w-md mx-auto min-h-[380px] flex items-center justify-center">
+              <div className="hidden lg:flex absolute right-[calc(100%+48px)] top-1/2 -translate-y-1/2 flex-col items-start space-y-4 w-[280px] lg:w-[320px] text-left animate-in fade-in slide-in-from-left-6 duration-700">
+                <span className="inline-block px-3 py-1 rounded-full bg-yellow-400/20 text-yellow-700 text-[10px] font-black uppercase tracking-wider animate-pulse">
+                  ✨ Tín hiệu vũ trụ
+                </span>
+                <h2 className="text-3xl lg:text-4xl font-black text-gray-950 tracking-tight leading-none uppercase">
+                  Không biết <br />
+                  <span className="bg-gradient-to-r from-green-600 via-emerald-500 to-teal-600 bg-clip-text text-transparent italic font-medium">chọn gì?</span>
+                </h2>
+                <style>{`
+                  @keyframes point-right { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(10px); } }
+                  .animate-point-right { animation: point-right 0.8s infinite ease-in-out; }
+                  @keyframes glow-pulse { 0%, 100% { box-shadow: 0 0 5px rgba(34, 197, 94, 0.4); } 50% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.8); } }
+                  .animate-glow-pulse { animation: glow-pulse 2s infinite ease-in-out; }
+                `}</style>
+                <button
+                  onClick={() => window.dispatchEvent(new CustomEvent("trigger-jackpot-spin"))}
+                  disabled={jackpotPhase !== "idle"}
+                  className="flex items-center space-x-3 bg-gradient-to-r from-green-600 to-emerald-500 text-white px-5 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg animate-glow-pulse transition-all select-none hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-80 disabled:cursor-not-allowed"
+                >
+                  <span>{jackpotPhase === "spinning" ? "Đang quay..." : "Gạt cần ngay thôi"}</span>
+                  <span className="animate-point-right text-lg leading-none">👉</span>
+                </button>
+              </div>
+              <div className="w-full z-10">
+                <JackpotCard
+                  outOfStockSlugs={outOfStockFruitSlugs}
+                  onPhaseChange={(phase: string) => setJackpotPhase(phase)}
+                />
+              </div>
             </div>
-
-            {/* Jackpot Slot Machine Card - Stays perfectly centered inside wrapper */}
-            <div className="w-full z-10">
-              <JackpotCard 
-                outOfStockSlugs={outOfStockFruitSlugs} 
-                onPhaseChange={(phase: string) => setJackpotPhase(phase)}
-              />
-            </div>
-
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Product Sections */}
       <div className="pb-24">

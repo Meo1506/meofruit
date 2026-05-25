@@ -1,10 +1,13 @@
 "use client";
 import { useCart } from "@/context/CartContext";
+import { usePathname } from "next/navigation";
 import { ShoppingCart } from "lucide-react";
 
 export default function FloatingCart() {
   const { totalItems, totalPrice, setIsCartOpen } = useCart();
+  const pathname = usePathname();
 
+  if (pathname?.startsWith("/admin")) return null;
   if (totalItems === 0) return null;
 
   return (

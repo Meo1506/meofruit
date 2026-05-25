@@ -19,10 +19,13 @@ const FRUITS = [
   { name: "Mận",     emoji: "🍑", img: "https://images.unsplash.com/photo-1571680322279-a226e6a4cc2a?q=80&w=400", slug: "man-cat-san" },
   { name: "Dưa hấu", emoji: "🍉", img: "https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?q=80&w=400", slug: "dua-hau-cat-san" },
   { name: "Quýt",    emoji: "🍊", img: "https://images.unsplash.com/photo-1611080626919-7cf5a9dbab12?q=80&w=400", slug: "quyt-boc-san" },
+  { name: "Nho",     emoji: "🍇", img: "https://images.unsplash.com/photo-1599819811279-d5ad9cccf838?q=80&w=400", slug: "nho-cat-san" },
+  { name: "Bưởi",    emoji: "🍊", img: "https://images.unsplash.com/photo-1591465001565-ad14e9c81b9b?q=80&w=400", slug: "buoi-tach-mui" },
 ];
 
+// 5 reel cố định; INIT_YS dùng FRUITS.length để strip dài đủ với mọi số loại quả
 const SPEEDS  = [9, 10, 9.5, 10, 9];
-const INIT_YS = FRUITS.map((_, i) => (1 - (3 * 5 + i)) * SLOT_H);
+const INIT_YS = Array.from({ length: 5 }, (_, i) => (1 - (3 * FRUITS.length + i)) * SLOT_H);
 
 // ─── Sound ────────────────────────────────────────────────────────────────────
 function playTick() {
@@ -83,6 +86,8 @@ function mapResult(reels: number[]): { product: Product; customFruits?: string[]
   }
   if (unique.length === 5)
     return { product: mk("hop-ngu-sac", "Hộp Ngũ Sắc", "https://images.unsplash.com/photo-1610832958506-aa56368176cf?q=80&w=800&auto=format&fit=crop") };
+  if (unique.length === 2 && has("Nho", "Bưởi"))
+    return { product: mk("hop-thanh-mat", "Hộp Thanh Mát", "https://images.unsplash.com/photo-1596363505729-4190a9506133?q=80&w=800&auto=format&fit=crop") };
   if (unique.length === 2 && has("Dưa hấu", "Quýt"))
     return { product: mk("hop-giai-nhiet", "Hộp Giải Nhiệt", "https://images.unsplash.com/photo-1587049352846-4a222e784d38?q=80&w=800&auto=format&fit=crop") };
   if (unique.length === 3 && has("Ổi", "Mận", "Xoài"))
@@ -201,8 +206,8 @@ export default function JackpotCard({ outOfStockSlugs = [], onPhaseChange }: Jac
 
     function loop(i: number) {
       ys.current[i] -= SPEEDS[i];
-      if (ys.current[i] < -(REPS * 5 * SLOT_H * 0.5)) {
-        ys.current[i] += REPS * 5 * SLOT_H * 0.35;
+      if (ys.current[i] < -(REPS * FRUITS.length * SLOT_H * 0.5)) {
+        ys.current[i] += REPS * FRUITS.length * SLOT_H * 0.35;
       }
       const el = strips.current[i];
       if (el) el.style.transform = `translateY(${ys.current[i]}px)`;
@@ -221,8 +226,9 @@ export default function JackpotCard({ outOfStockSlugs = [], onPhaseChange }: Jac
 
         const curY  = ys.current[i];
         const fi    = targets[i];
+        const N     = FRUITS.length;
         const kMin  = Math.ceil((1 - curY / SLOT_H)) + 5;
-        const off   = ((fi - (kMin % 5)) + 5) % 5;
+        const off   = ((fi - (kMin % N)) + N) % N;
         const kLand = kMin + off;
         const landY = (1 - kLand) * SLOT_H;
 

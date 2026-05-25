@@ -55,7 +55,7 @@ export async function autoSeedIfEmpty() {
         image_url: p.image_url,
         category: p.category,
         description: p.description ?? null,
-        is_in_stock: p.is_in_stock ?? true,
+        stock_kg: (p as { stock_kg?: number }).stock_kg ?? (p.is_in_stock !== false ? 10 : 0),
         product_type: p.product_type ?? "standard",
         fruits: (p as { fruits?: string[] }).fruits ?? [],
       }));

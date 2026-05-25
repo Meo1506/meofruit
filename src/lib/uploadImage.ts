@@ -10,6 +10,7 @@ export interface UploadResult {
 
 const BUCKET = "Image";
 const FOLDER = "products";
+const BANNER_BUCKET = "banners";
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"];
 const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
 
@@ -57,8 +58,9 @@ export async function uploadProductImage(
         isDemo: true,
         message: "Demo mode — ảnh chưa upload lên Supabase. Kết nối Supabase + tạo bucket 'Image' để lưu thật.",
       };
-    } catch (e: any) {
-      return { ok: false, url: "", isDemo: true, message: e.message || "Đọc file thất bại" };
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Đọc file thất bại";
+      return { ok: false, url: "", isDemo: true, message: msg };
     }
   }
 
@@ -73,5 +75,49 @@ export async function uploadProductImage(
   }
 
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  return { ok: true, url: data.publicUrl, isDemo: false };
+}
+
+/**
+ * Upload ảnh banner trang chủ lên bucket `banners`.
+ * - Tên file = `<slug>-<timestamp>.<ext>` để tránh đè giữa nhiều banner.
+ * - Demo mode: trả về data URL để preview.
+ */
+export async function uploadBannerImage(
+  file: File,
+  slugHint?: string
+): Promise<UploadResult> {
+  const err = validateImageFile(file);
+  if (err) return { ok: false, url: "", isDemo: !isSupabaseConfigured(), message: err };
+
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+  const base = slugify(slugHint || file.name.replace(/\.[^.]+$/, "")) || "banner";
+  const filename = `${base}-${Date.now()}.${ext}`;
+
+  if (!isSupabaseConfigured()) {
+    try {
+      const dataUrl = await fileToDataURL(file);
+      return {
+        ok: true,
+        url: dataUrl,
+        isDemo: true,
+        message: "Demo mode — ảnh chưa upload lên Supabase. Kết nối Supabase + tạo bucket 'banners' để lưu thật.",
+      };
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Đọc file thất bại";
+      return { ok: false, url: "", isDemo: true, message: msg };
+    }
+  }
+
+  const { error: upErr } = await supabase.storage.from(BANNER_BUCKET).upload(filename, file, {
+    contentType: file.type,
+    upsert: false,
+  });
+
+  if (upErr) {
+    return { ok: false, url: "", isDemo: false, message: upErr.message };
+  }
+
+  const { data } = supabase.storage.from(BANNER_BUCKET).getPublicUrl(filename);
   return { ok: true, url: data.publicUrl, isDemo: false };
 }

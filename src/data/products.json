@@ -9,6 +9,7 @@
     "category": "Hộp Mix Sẵn",
     "description": "Mix đủ 5 loại trái cây: Xoài, Ổi, Mận, Dưa hấu, Quýt. Màu sắc rực rỡ, hương vị phong phú — sản phẩm đinh của shop.",
     "is_in_stock": true,
+    "stock_kg": 10,
     "product_type": "standard",
     "fruits": ["xoai-cat-san", "oi-cat-san", "man-cat-san", "dua-hau-cat-san", "quyt-boc-san"]
   },
@@ -22,6 +23,7 @@
     "category": "Hộp Mix Sẵn",
     "description": "Mix Dưa hấu + Quýt. Mát lạnh, ngọt thanh, hoàn hảo cho những ngày nắng nóng.",
     "is_in_stock": true,
+    "stock_kg": 10,
     "product_type": "standard",
     "fruits": ["dua-hau-cat-san", "quyt-boc-san"]
   },
@@ -35,6 +37,7 @@
     "category": "Hộp Mix Sẵn",
     "description": "Mix Ổi + Mận + Xoài. Giòn, chua nhẹ, ngọt vừa — combo cực kỳ ăn vặt.",
     "is_in_stock": true,
+    "stock_kg": 10,
     "product_type": "standard",
     "fruits": ["oi-cat-san", "man-cat-san", "xoai-cat-san"]
   },
@@ -48,6 +51,7 @@
     "category": "Hộp Mix Sẵn",
     "description": "2 loại quả do shop bắt cặp sẵn mỗi ngày (ví dụ: Xoài + Ổi). Combo thay đổi theo mùa.",
     "is_in_stock": true,
+    "stock_kg": 10,
     "product_type": "standard",
     "fruits": []
   },
@@ -61,6 +65,7 @@
     "category": "Hộp Tự Chọn",
     "description": "Tự do tick chọn từ 2 đến 5 loại trái cây yêu thích để mix vào 1 hộp 750ml.",
     "is_in_stock": true,
+    "stock_kg": 10,
     "product_type": "custom_mix",
     "fruits": []
   },
@@ -74,6 +79,7 @@
     "category": "Hộp Nguyên Bản",
     "description": "Xoài tươi cắt miếng vừa ăn, đóng hộp 750ml. Ngọt đậm, thơm lừng.",
     "is_in_stock": true,
+    "stock_kg": 10,
     "product_type": "standard",
     "fruits": ["xoai-cat-san"]
   },
@@ -87,6 +93,7 @@
     "category": "Hộp Nguyên Bản",
     "description": "Ổi tươi giòn cắt sẵn, đóng hộp 750ml. Giòn tan, ít hạt, vị ngọt thanh.",
     "is_in_stock": true,
+    "stock_kg": 10,
     "product_type": "standard",
     "fruits": ["oi-cat-san"]
   },
@@ -100,6 +107,7 @@
     "category": "Hộp Nguyên Bản",
     "description": "Mận tươi đỏ mọng cắt sẵn, đóng hộp 750ml. Chua ngọt tự nhiên, giải nhiệt cực tốt.",
     "is_in_stock": true,
+    "stock_kg": 10,
     "product_type": "standard",
     "fruits": ["man-cat-san"]
   },
@@ -113,6 +121,7 @@
     "category": "Hộp Nguyên Bản",
     "description": "Dưa hấu đỏ tươi cắt miếng, đóng hộp 750ml. Mát lạnh, ngọt thanh, ít hạt.",
     "is_in_stock": true,
+    "stock_kg": 10,
     "product_type": "standard",
     "fruits": ["dua-hau-cat-san"]
   },
@@ -126,7 +135,36 @@
     "category": "Hộp Nguyên Bản",
     "description": "Quýt tươi bóc sẵn từng múi, đóng hộp 750ml. Ngọt thanh, thơm nhẹ, ăn là ghiền.",
     "is_in_stock": true,
+    "stock_kg": 10,
     "product_type": "standard",
     "fruits": ["quyt-boc-san"]
+  },
+  {
+    "id": "nho-cat-san",
+    "slug": "nho-cat-san",
+    "name": "Nho cắt sẵn",
+    "price": 30000,
+    "price_formatted": "30.000₫",
+    "image_url": "https://images.unsplash.com/photo-1599819811279-d5ad9cccf838?q=80&w=800&auto=format&fit=crop",
+    "category": "Hộp Nguyên Bản",
+    "description": "Nho tươi tách cuống, rửa sạch, đóng hộp 750ml. Ngọt mọng, không hạt, ăn liền.",
+    "is_in_stock": true,
+    "stock_kg": 10,
+    "product_type": "standard",
+    "fruits": ["nho-cat-san"]
+  },
+  {
+    "id": "buoi-tach-mui",
+    "slug": "buoi-tach-mui",
+    "name": "Bưởi tách múi",
+    "price": 30000,
+    "price_formatted": "30.000₫",
+    "image_url": "https://images.unsplash.com/photo-1591465001565-ad14e9c81b9b?q=80&w=800&auto=format&fit=crop",
+    "category": "Hộp Nguyên Bản",
+    "description": "Bưởi da xanh tách múi sạch xơ, đóng hộp 750ml. Chua ngọt thanh mát, mọng nước.",
+    "is_in_stock": true,
+    "stock_kg": 10,
+    "product_type": "standard",
+    "fruits": ["buoi-tach-mui"]
   }
 ]

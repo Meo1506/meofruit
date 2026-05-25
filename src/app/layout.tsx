@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CartSidebar from "@/components/CartSidebar";
 import FloatingCart from "@/components/FloatingCart";
+import FloatingSocialIcons from "@/components/FloatingSocialIcons";
 import Providers from "./providers";
 import { getSiteSettings } from "@/lib/site-settings";
 
@@ -22,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
   return {
     title: `${settings.webName} — Trái cây tươi cắt sẵn`,
-    description: `Chuyên cung cấp trái cây tươi cắt sẵn và nước ép nguyên chất. ${settings.shipping.policy}.`,
+    description: `Chuyên cung cấp trái cây tươi cắt sẵn, đóng hộp tiện lợi. ${settings.shipping.policy}.`,
   };
 }
 
@@ -42,6 +43,7 @@ export default async function RootLayout({
           <Navbar />
           <CartSidebar />
           <FloatingCart />
+          <FloatingSocialIcons />
           <main className="flex-grow">{children}</main>
           <Footer />
         </Providers>

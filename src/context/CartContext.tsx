@@ -1,6 +1,7 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product } from '@/types';
+import { getEffectivePrice } from '@/lib/price';
 
 export interface CartItem extends Product {
   quantity: number;
@@ -78,7 +79,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const clearCart = () => setCart([]);
 
-  const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  // Effective price (sale fallback when expired) — kiểm tra ở read time, không cần cron.
+  const totalPrice = cart.reduce((sum, item) => sum + getEffectivePrice(item) * item.quantity, 0);
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (

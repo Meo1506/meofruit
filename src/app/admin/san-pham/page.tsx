@@ -28,6 +28,7 @@ export default function AdminProducts() {
   const [isBulkPriceModalOpen, setIsBulkPriceModalOpen] = useState(false);
   const [bulkPrice, setBulkPrice] = useState("");
   const [bulkSalePrice, setBulkSalePrice] = useState("");
+  const [bulkSaleUntil, setBulkSaleUntil] = useState("");
   const [isBulkSaving, setIsBulkSaving] = useState(false);
 
   const handleBulkSave = async (e: React.FormEvent) => {
@@ -44,9 +45,14 @@ export default function AdminProducts() {
         return;
       }
 
+      const saleUntilIso = salePrice !== null && bulkSaleUntil.trim()
+        ? new Date(bulkSaleUntil).toISOString()
+        : null;
+
       const updateData: any = {
         price,
         sale_price: salePrice,
+        sale_until: saleUntilIso,
         price_formatted: price.toLocaleString('vi-VN') + "₫"
       };
 
@@ -66,6 +72,7 @@ export default function AdminProducts() {
       setIsBulkPriceModalOpen(false);
       setBulkPrice("");
       setBulkSalePrice("");
+      setBulkSaleUntil("");
     } catch (err: any) {
       alert("Lỗi khi cập nhật giá hàng loạt: " + (err?.message || err));
     } finally {
@@ -87,7 +94,7 @@ export default function AdminProducts() {
         image_url: p.image_url,
         category: p.category,
         description: p.description ?? null,
-        is_in_stock: p.is_in_stock ?? true,
+        stock_kg: (p as { stock_kg?: number }).stock_kg ?? (p.is_in_stock !== false ? 10 : 0),
         product_type: p.product_type ?? "standard",
         fruits: (p as { fruits?: string[] }).fruits ?? [],
       }));
@@ -116,6 +123,7 @@ export default function AdminProducts() {
   // State cho price preview (live tính % giảm)
   const [priceInput, setPriceInput] = useState<string>("");
   const [salePriceInput, setSalePriceInput] = useState<string>("");
+  const [saleUntilInput, setSaleUntilInput] = useState<string>("");
 
   // Reset state file + price mỗi khi đóng/mở modal
   useEffect(() => {
@@ -126,10 +134,25 @@ export default function AdminProducts() {
       setUploadError(null);
       setPriceInput("");
       setSalePriceInput("");
+      setSaleUntilInput("");
     } else {
       // Seed từ editing product
       setPriceInput(editingProduct?.price?.toString() || "");
       setSalePriceInput(editingProduct?.sale_price?.toString() || "");
+      // Convert ISO → local datetime-local format (yyyy-MM-ddTHH:mm)
+      if (editingProduct?.sale_until) {
+        const d = new Date(editingProduct.sale_until);
+        if (!isNaN(d.getTime())) {
+          const pad = (n: number) => String(n).padStart(2, "0");
+          setSaleUntilInput(
+            `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+          );
+        } else {
+          setSaleUntilInput("");
+        }
+      } else {
+        setSaleUntilInput("");
+      }
     }
   }, [isModalOpen, editingProduct]);
 
@@ -203,7 +226,7 @@ export default function AdminProducts() {
         if (error) throw error;
         setProducts(data || []);
       } else {
-        setProducts(productsData.map((p, i) => ({ ...p, id: p.id || i.toString(), is_in_stock: true })) as Product[]);
+        setProducts(productsData.map((p, i) => ({ ...p, id: p.id || i.toString() })) as Product[]);
       }
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -299,15 +322,21 @@ export default function AdminProducts() {
         return;
       }
 
+      const saleUntilRaw = (formData.get("sale_until") as string) || "";
+      const saleUntilIso = salePrice !== null && saleUntilRaw.trim()
+        ? new Date(saleUntilRaw).toISOString()
+        : null;
+
       const productData = {
         name,
         price,
         sale_price: salePrice,
+        sale_until: saleUntilIso,
         price_formatted: price.toLocaleString('vi-VN') + "₫",
         category: formData.get("category") as string,
         image_url: finalImageUrl,
         description: formData.get("description") as string,
-        is_in_stock: formData.get("is_in_stock") === "true",
+        stock_kg: Math.max(0, parseFloat(formData.get("stock_kg") as string) || 0),
         slug,
       };
 
@@ -583,6 +612,33 @@ export default function AdminProducts() {
                     </div>
                   </div>
 
+                  {/* Sale until datetime — chỉ hiện khi đang có sale_price */}
+                  <div className="sm:col-span-2">
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
+                      Giảm đến ngày/giờ <span className="text-gray-300 normal-case">(để trống = sale không có hạn)</span>
+                    </label>
+                    <input
+                      name="sale_until"
+                      type="datetime-local"
+                      value={saleUntilInput}
+                      onChange={(e) => setSaleUntilInput(e.target.value)}
+                      disabled={!salePriceInput.trim()}
+                      className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-red-500 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+                    {saleUntilInput && salePriceInput.trim() && (() => {
+                      const until = new Date(saleUntilInput);
+                      if (isNaN(until.getTime())) return null;
+                      if (until.getTime() <= Date.now()) {
+                        return (
+                          <p className="mt-2 text-[11px] font-bold text-orange-700">
+                            ⚠ Thời điểm này đã ở quá khứ — sale sẽ không hiển thị cho khách.
+                          </p>
+                        );
+                      }
+                      return null;
+                    })()}
+                  </div>
+
                   {/* Live preview discount % */}
                   {(() => {
                     const p = parseInt(priceInput);
@@ -647,11 +703,20 @@ export default function AdminProducts() {
 
 
                 <div className="md:col-span-2">
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Trạng thái tồn kho</label>
-                  <select name="is_in_stock" defaultValue={editingProduct?.is_in_stock === false ? "false" : "true"} className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-green-500 font-bold cursor-pointer text-sm">
-                    <option value="true">Còn hàng (Cho phép khách mua)</option>
-                    <option value="false">Hết hàng (Hiện nhãn Hết hàng)</option>
-                  </select>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
+                    Số kg còn lại trong kho
+                  </label>
+                  <input
+                    type="number"
+                    name="stock_kg"
+                    min="0"
+                    step="0.5"
+                    defaultValue={editingProduct?.stock_kg ?? (editingProduct?.is_in_stock === false ? 0 : 10)}
+                    className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-green-500 font-bold text-sm"
+                  />
+                  <p className="text-[10px] text-gray-400 font-medium mt-1.5">
+                    Đặt 0 = hết hàng (sản phẩm liên quan sẽ tự tối màu). DB tự derive `is_in_stock = stock_kg &gt; 0`.
+                  </p>
                 </div>
 
                 <div className="md:col-span-2">
@@ -794,7 +859,17 @@ export default function AdminProducts() {
                   className="w-full px-5 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-red-500 font-bold"
                 />
               </div>
-              <button 
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Giảm đến ngày/giờ <span className="text-gray-300 normal-case">(để trống = không hạn)</span></label>
+                <input
+                  type="datetime-local"
+                  value={bulkSaleUntil}
+                  onChange={(e) => setBulkSaleUntil(e.target.value)}
+                  disabled={!bulkSalePrice.trim()}
+                  className="w-full px-5 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-red-500 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+              </div>
+              <button
                 type="submit"
                 disabled={isBulkSaving}
                 className="w-full py-4 bg-green-600 text-white font-black rounded-xl hover:bg-green-700 shadow-lg shadow-green-100 transition-all uppercase tracking-widest text-xs flex items-center justify-center disabled:opacity-75"

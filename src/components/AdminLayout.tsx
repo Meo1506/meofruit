@@ -15,6 +15,7 @@ import {
   AlertTriangle,
   Mail,
   Apple,
+  Layout,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -80,6 +81,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const menuItems = [
     { name: "Tổng quan",   icon: LayoutDashboard, href: "/admin" },
     { name: "Sản phẩm",   icon: ShoppingBag,     href: "/admin/san-pham" },
+    { name: "Banner",     icon: Layout,          href: "/admin/banner" },
     { name: "Tồn kho quả", icon: Apple,           href: "/admin/trai-cay" },
     { name: "Đơn hàng",   icon: ShoppingCart,    href: "/admin/don-hang" },
     { name: "Tin nhắn",   icon: Mail,            href: "/admin/tin-nhan" },

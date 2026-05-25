@@ -1,5 +1,6 @@
 "use client";
 import { useCart } from "@/context/CartContext";
+import { formatVND, getEffectivePrice, isOnSale } from "@/lib/price";
 import Link from "next/link";
 
 export default function CartSidebar() {
@@ -43,7 +44,12 @@ export default function CartSidebar() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="text-sm font-bold text-gray-900 line-clamp-2 leading-snug">{item.name}</h3>
-                        <p className="mt-1 text-sm text-red-600 font-bold">{item.price_formatted}</p>
+                        <p className="mt-1 text-sm font-bold flex items-baseline gap-2">
+                          <span className="text-red-600">{formatVND(getEffectivePrice(item))}</span>
+                          {isOnSale(item) && (
+                            <span className="text-[11px] font-bold text-gray-400 line-through">{formatVND(item.price)}</span>
+                          )}
+                        </p>
                         <div className="flex items-center mt-2 gap-3">
                           <div className="flex items-center border rounded-lg bg-gray-50">
                             <button

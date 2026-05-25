@@ -4,6 +4,7 @@ import { useCart } from "@/context/CartContext";
 import { useState } from "react";
 import { ShoppingCart, Plus, Minus, Check, Sliders } from "lucide-react";
 import { formatVND, getEffectivePrice, isOnSale, getDiscountPercent } from "@/lib/price";
+import SaleCountdown from "@/components/SaleCountdown";
 import dynamic from "next/dynamic";
 
 const ProductQuickView = dynamic(
@@ -54,7 +55,7 @@ export default function ProductCard({ product, outOfStockFruitNames = [] }: Prod
       setShowQuickView(true);
       return;
     }
-    addToCart({ ...product, price: unitPrice, price_formatted: formatVND(unitPrice) }, quantity, true);
+    addToCart(product, quantity, true);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
   };
@@ -68,7 +69,7 @@ export default function ProductCard({ product, outOfStockFruitNames = [] }: Prod
       return;
     }
     // Standard: thêm vào giỏ và mở sidebar luôn
-    addToCart({ ...product, price: unitPrice, price_formatted: formatVND(unitPrice) }, quantity, false);
+    addToCart(product, quantity, false);
   };
 
   return (
@@ -137,6 +138,12 @@ export default function ProductCard({ product, outOfStockFruitNames = [] }: Prod
           <div className="mt-auto relative min-h-[90px] md:min-h-[100px]">
             {/* Default: price */}
             <div className="transition-all duration-300 md:group-hover:opacity-0 md:group-hover:-translate-y-4 md:absolute md:inset-0 flex flex-col justify-end">
+              {onSale && product.sale_until && (
+                <SaleCountdown
+                  saleUntil={product.sale_until}
+                  className="text-[10px] font-black text-red-600 uppercase tracking-wider mb-1"
+                />
+              )}
               <div className="flex justify-between items-baseline gap-2">
                 <div className="flex items-baseline gap-2 min-w-0">
                   <span className="text-base font-black text-red-600">{formatVND(unitPrice)}</span>

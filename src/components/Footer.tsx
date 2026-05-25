@@ -1,9 +1,11 @@
 "use client";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useSiteSettings } from "@/context/SettingsContext";
 
 export default function Footer() {
   const settings = useSiteSettings();
+  const pathname = usePathname();
 
   const handleSocialClick = (e: React.MouseEvent, link: string, platform: string) => {
     if (!link) {
@@ -12,6 +14,8 @@ export default function Footer() {
     }
   };
 
+  if (pathname?.startsWith("/admin")) return null;
+
   return (
     <footer className="bg-white border-t border-gray-100 py-16">
       <div className="container mx-auto px-4">
@@ -19,7 +23,7 @@ export default function Footer() {
           <div className="space-y-6">
             <h3 className="text-2xl font-black text-green-600 tracking-tighter">{settings.webName}</h3>
             <p className="text-gray-500 leading-relaxed text-sm font-medium">
-              Chuyên cung cấp các loại trái cây nhập khẩu tươi ngon và nước ép nguyên chất. Mang sức khỏe đến mọi nhà. {settings.shipping.policy}.
+              Chuyên cung cấp các loại trái cây nhập khẩu tươi ngon, cắt sẵn và đóng hộp. Mang sức khỏe đến mọi nhà. {settings.shipping.policy}.
             </p>
             <div className="flex space-x-4">
               {[

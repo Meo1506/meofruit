@@ -58,7 +58,7 @@ export default function RegisterPage() {
         return;
       }
 
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
@@ -72,6 +72,19 @@ export default function RegisterPage() {
       });
 
       if (signUpError) throw signUpError;
+
+      // Trigger handle_new_user() (nếu có) chỉ copy field nó biết từ raw_user_meta_data.
+      // Upsert thêm ở đây để chắc chắn phone/address luôn được ghi vào bảng profiles.
+      if (signUpData.user) {
+        const { error: profileError } = await supabase.from("profiles").upsert({
+          id: signUpData.user.id,
+          full_name: formData.fullName,
+          username: formData.username,
+          phone: formData.phone,
+          address: formData.address,
+        });
+        if (profileError) console.error("Profile upsert failed:", profileError);
+      }
 
       // Đăng ký thành công → vào tài khoản luôn (không cần xác nhận email)
       router.push("/tai-khoan");

@@ -14,6 +14,7 @@ interface Props {
   totalPrice: number;
   items: OrderItem[];
   isLoggedIn: boolean;
+  orderCode?: string | null;
 }
 
 /* Confetti piece — random position & colour via inline style */
@@ -40,7 +41,7 @@ function ConfettiPiece({ index }: { index: number }) {
   );
 }
 
-export default function OrderSuccessModal({ customerName, totalPrice, items, isLoggedIn }: Props) {
+export default function OrderSuccessModal({ customerName, totalPrice, items, isLoggedIn, orderCode }: Props) {
   const [visible, setVisible] = useState(false);
   const [countdown, setCountdown] = useState(6);
 
@@ -103,6 +104,26 @@ export default function OrderSuccessModal({ customerName, totalPrice, items, isL
 
         {/* Order summary */}
         <div className="px-6 py-5 space-y-4">
+          {/* Order code (quan trọng nhất cho guest) */}
+          {orderCode && (
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-dashed border-green-300 rounded-2xl px-4 py-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-green-700 mb-1">
+                Mã đơn hàng của bạn
+              </p>
+              <p className="text-2xl font-black text-green-700 font-mono tracking-tight">
+                {orderCode}
+              </p>
+              {!isLoggedIn && (
+                <p className="text-[11px] text-gray-600 font-medium mt-2 leading-relaxed">
+                  Lưu lại mã này để tra cứu trạng thái đơn tại{" "}
+                  <Link href="/tra-cuu-don" className="text-green-700 font-bold underline">
+                    /tra-cuu-don
+                  </Link>
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Items */}
           <div className="space-y-2 max-h-[160px] overflow-y-auto custom-scrollbar pr-1">
             {items.map((item, i) => (
@@ -144,21 +165,12 @@ export default function OrderSuccessModal({ customerName, totalPrice, items, isL
             >
               <Home size={14} /> Trang chủ
             </Link>
-            {isLoggedIn ? (
-              <Link
-                href="/tai-khoan/don-hang"
-                className="flex-1 flex items-center justify-center gap-2 py-3 bg-green-600 text-white font-black rounded-2xl hover:bg-green-700 transition-all shadow-lg shadow-green-100 text-xs uppercase tracking-widest"
-              >
-                <Package size={14} /> Đơn hàng
-              </Link>
-            ) : (
-              <Link
-                href="/san-pham"
-                className="flex-1 flex items-center justify-center gap-2 py-3 bg-green-600 text-white font-black rounded-2xl hover:bg-green-700 transition-all shadow-lg shadow-green-100 text-xs uppercase tracking-widest"
-              >
-                🛍️ Mua thêm
-              </Link>
-            )}
+            <Link
+              href="/don-cua-toi"
+              className="flex-1 flex items-center justify-center gap-2 py-3 bg-green-600 text-white font-black rounded-2xl hover:bg-green-700 transition-all shadow-lg shadow-green-100 text-xs uppercase tracking-widest"
+            >
+              <Package size={14} /> Đơn của tôi
+            </Link>
           </div>
 
           {/* Auto-redirect hint */}
